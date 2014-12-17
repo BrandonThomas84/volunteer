@@ -1,0 +1,91 @@
+/* 
+* @Author: Brandon Thomas
+* @Date:   2014-08-29 12:56:14
+* @Last Modified by:   Brandon Thomas
+* @Last Modified time: 2014-10-07 15:37:12
+*/
+@media only screen and (min-width : 320px) and (max-width : 640px) {
+	h1 {
+		text-align: center;
+	}
+	.small-top-marg {
+		margin-top: 15px;
+	}
+	#volunteer-calendar-container {
+		margin: 0;
+		padding: 0;
+	}
+	#volunteer-calendar-container > .row {
+		margin: 0;
+		margin-left: 0 !important;
+		padding: 0;
+		width: 100%;
+	}
+	.calendar-day-head > small {
+		display: none;
+	}
+	.users-display-table {
+		table-layout:fixed;
+	}
+	.users-display-table th {
+		word-wrap:break-word;
+	}
+	.users-display-table {
+		font-size: 11px;
+	}
+	.users-display-table .btn {
+		font-size: 12px;
+	}
+	.users-display-table td .btn {
+		margin-top: 5px;
+	}
+	.uu-sib {
+		padding: 0;
+	}
+	.uu-sib:before {
+		content: "User Type";
+	}
+	.users-table-head-id {
+		width: 4%;
+		min-width: 30px;
+	}
+	.users-table-head-fst,
+	.users-table-head-lst {
+		width: 11%;
+		min-width: 60px;	
+	}
+	.users-table-head-eml {
+		width: 30%;
+		min-width: 100px;
+	}
+	.users-table-head-dt {
+		
+	}
+	.users-table-head-cont {
+		
+	}
+	.users-table-head-pdcont {
+		
+	}
+	#settings-controls label {
+		font-size: 11px;
+	}
+	.event-base-info > div {
+		height: 45px;
+	}
+	.popover-toggle-help {
+		top: -10px;
+		right: 0;
+	}
+	#page-scroll-coontainer > ul > li {
+		width: auto !important;
+		margin: 0 1%;
+	}
+	#pbe-table > tbody > tr > td > p {
+		padding-top: 1px !important;	
+	}
+	#manage-user-profile-image {
+		display: block;
+		margin: 10px auto 20px auto;
+	}
+}

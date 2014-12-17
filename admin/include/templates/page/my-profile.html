@@ -1,0 +1,60 @@
+<div class="row-fluid">
+	<form id="profile-settings" name="my-profile" class="form-horizontal" role="form" enctype="multipart/form-data">
+		<div id="profile-image" class="col-xs-12 col-md-4">
+			<div class="col-xs-10 col-xs-offset-1 text-center">
+				<img src="/assets/blank_male.jpg">
+				<div id="new-profile-img-upload" style="padding-bottom: 12px;display:none;" class="text-center marg-t">
+					<input type="file" name="new-profile-image" id="new-profile-image" class="form-control" >
+				</div>
+				<button id="new-profile-img-trigger" class="marg-t col-xs-6 col-xs-offset-3 btn btn-primary">Upload New Photo</button>
+			</div>
+		</div>
+		<div id="profile-body" class="col-xs-12 col-md-8">
+			<div class="form-section">
+				<h3>General Information</h3>
+				<div class="form-group">
+				    <label for="settings-profile-email" class="col-sm-2 control-label">Email</label>
+				    <div class="col-sm-10">
+				    	<input type="email" name="settings-profile-email" class="form-control" id="settings-profile-email" placeholder="Email">
+					</div>
+				</div>
+				<div class="form-group">
+				    <label for="settings-profile-first-name" class="col-sm-2 control-label">First Name</label>
+				    <div class="col-sm-10">
+				    	<input type="text" name="settings-profile-first-name" class="form-control" id="settings-profile-first-name" placeholder="Your First Name">
+					</div>
+				</div>
+				<div class="form-group">
+				    <label for="settings-profile-last-name" class="col-sm-2 control-label">Last Name</label>
+				    <div class="col-sm-10">
+				    	<input type="text" name="settings-profile-last-name" class="form-control" id="settings-profile-last-name" placeholder="Your Last Name">
+					</div>
+				</div>
+			</div>
+			<div class="form-section">
+				<h3>User Security</h3>
+				<div class="form-group">
+				    <label for="settings-profile-password1" class="col-sm-2 control-label">Password</label>
+				    <div class="col-sm-10">
+				    	<input type="password" name="settings-profile-password1" class="form-control" id="settings-profile-password1" placeholder="Should include upper and lower case letters and at least one special character and/or number">
+					</div>
+				</div>
+				<div class="form-group  has-feedback">
+				    <label for="settings-profile-password2" class="col-sm-2 control-label">Password</label>
+				    <div class="col-sm-10">
+				    	<input type="password" name="settings-profile-password2" class="form-control" id="settings-profile-password2" placeholder="Repeat your password">
+					</div>
+				</div>
+			</div>
+			<div class="form-section">
+				<h3>Account Information</h3>
+				<div class="form-group">
+				    <label for="settings-profile-account-type" class="col-sm-2 control-label">Account Type</label>
+				    <div class="col-sm-10">
+				    	<input type="email" name="settings-profile-account-type" class="form-control" id="settings-profile-account-type" value="Administrative" readonly>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form><!--END FORM-->
+</div>

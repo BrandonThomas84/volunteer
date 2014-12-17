@@ -1,0 +1,14 @@
+RewriteEngine on 
+
+#MAIN PAGES
+
+	#rewriting all page values
+	RewriteRule ^/?([a-zA-Z_-]+)$ index.php?page=$1 [QSA]
+	RewriteRule ^/?([a-zA-Z_-]+)/$ index.php?page=$1 [QSA]
+	RewriteRule ^/?([a-zA-Z_-]+)/([a-zA-Z0-9_-]+)$ index.php?page=$1&function=$2 [QSA]
+	RewriteRule ^/?([a-zA-Z_-]+)/([a-zA-Z0-9_-]+)/$ index.php?page=$1&function=$2 [QSA]
+	
+
+#DYNAMIC REWRITES
+
+

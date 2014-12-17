@@ -1,0 +1,184 @@
+/* 
+* @Author: Brandon Thomas
+* @Date:   2014-10-08 01:04:17
+* @Last Modified by:   Brandon Thomas
+* @Last Modified time: 2014-10-10 01:13:22
+*/
+#volunteer-signup-primary {
+	margin: 0 20px;
+}
+#volunteer-signup-primary h1 {
+	margin: 5px 0 20px 0;
+	padding: 10px 0 20px 0;
+	border-bottom: 1px dotted #999;
+}
+#volunteer-signup-body h2 {
+	margin: 0;
+	padding: 20px;
+	margin-bottom: 30px;
+}
+#volunteer-signup-narrows {
+	padding: 0;
+}
+#volunteer-signup-narrows input,
+#volunteer-signup-narrows select,
+#volunteer-signup-narrows .input-group {
+	width: 100%;
+}
+
+
+
+/* CALENDAR STYLES */
+ #volunteer-calendar-container {
+	margin: 20px 0 30px 0
+ }
+ .calendar-day {
+ 	border: 1px solid #d9d9d9;
+ 	width: 13.285714285%;
+ 	height: 90px;
+ 	float: left;
+ 	display: block;
+ 	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box; 
+	box-sizing: border-box;
+	margin: .5%;
+	border-radius: 7px;
+	text-align: center;
+ }
+ .calendar-day .row {
+ 	margin: 0;
+ }
+ .calendar-day .row > .calendar-day-head {
+ 	width: 100%;
+	margin: 0 auto;
+	border-radius: 6px 6px 0 0 ;
+	color: #ffffff;
+	font-size: 14px;
+	background-color: rgb(197,126,64);
+	text-shadow: #623f20 1px 1px 0px;
+	border: 1px solid #C57E40;
+	height: 25px;
+	padding: 1px 15px 3px 2px;
+ }
+ .calendar-day-head > small {
+ 	font-size: 10px;
+ }
+ .calendar-day-num {
+ 	display: inline-block;
+ 	float: right;
+ 	font-size: 18px;
+ 	position: relative;
+	top: -3px;
+	right: -10px;
+	color: #fff;
+ }
+ .calendar-day.cal-today {
+ 	background: rgba(135,197,64,.25);
+ 	border: 1px solid #87c540;
+ 	box-shadow: 1px 1px 8px #333;
+ }
+ .calendar-day.cal-today .row > .calendar-day-head {
+ 	background: rgba(135,197,64,.85);
+ 	color: #608e2b;
+ 	text-shadow: #acd77b 1px 1px 1px;
+ }
+ .calendar-day.day-saturday .row> .calendar-day-head,
+ .calendar-day.day-sunday .row > .calendar-day-head {
+ 	background: rgba(65,135,197,.75);
+ 	color: #d8e7f3;
+ 	text-shadow: rgb(0,0,0) 1px 1px 0px;
+ 	border: 1px solid rgb(65,135,197);
+ }
+ .calendar-day.alternate-month .row > .calendar-day-head  {
+ 	background: rgba(0,0,0,.2);
+ 	color: #d9d9d9;
+ 	text-shadow: rgba(0,0,0,.4) 0px 0px 1px;
+ 	border: 1px solid rgba(0,0,0,.4);
+ }
+ .calendar-day.alternate-month .label {
+ 	background: #efefef;
+ 	color: #999;
+ }
+ .calendar-day button {
+ 	margin-bottom: 4px;
+ }
+ .calendar-day button:after{
+ 	display: block;
+ 	white-space: normal;
+ 	clear: both;
+ 	height: 2px;
+ }
+ #volunteer-calendar-container > .row.col-xs-11 {
+ 	margin-left: 4%;
+ }
+ .avail-positions {
+ 	margin-bottom: 5px;
+ 	display: block;
+ 	border-radius: 0;
+ 	margin: 5px auto;
+	width: 90%;
+ }
+ .avail-positions.label-danger {
+ 	background: rgba( 178,34,34,.7);
+ }
+ .avail-positions.label-success {
+ 	background: rgba( 34,139,34,.7);
+ }
+ .avail-positions.label-danger:hover {
+ 	background: rgba( 178,34,34,1);
+ }
+ .avail-positions.label-success:hover {
+ 	background: rgba( 34,139,34,1);
+ }
+ .calendar-day.alternate-month .avail-positions.label-success:hover,
+ .calendar-day.alternate-month .avail-positions.label-danger:hover {
+ 	background: rgba( 0,0,0,.8);
+ }
+.fe-position-detail img.position-lead-profile-img {
+	max-width: 75%;
+	padding: 8px;
+	border: 1px solid #d9d9d9;
+	background: #efefef;
+} 
+#modal-position-details {
+	display: none;
+}
+#modal-position-controls {
+	border-top: 1px dotted #999;
+	border-bottom: 3px solid #d9d9d9;
+	padding: 20px 0;
+	margin-bottom: 20px;
+}
+.pos-lead-outer {
+	padding: 10px 5px 20px 5px;
+}
+.position-modal-name {
+	font-style: italic;
+	border-bottom: 1px solid #d9d9d9;
+	padding-bottom: 8px;
+	margin-bottom: 20px
+}
+.pos-info-outer {
+	border-left: 1px solid #d9d9d9;
+	padding: 0 0 20px 0;
+	background: #efefef;
+}
+.pos-description-inner {
+	border: 1px solid #d9d9d9;
+	padding: 12px 15px;
+	background: #fff;
+	border-radius: 8px;
+}
+.pos-description-inner img {
+	max-width: 75%;
+	border: 1px solid #999;
+	background: #fff;
+	padding: 8px;
+	margin: 0 auto;
+	display: block;
+	box-shadow: #999 2px 3px 4px;
+	border-radius: 7px;
+}
+.active-narrow {
+	box-shadow: 0px 0px 9px rgba(38,221,20,.9);
+}

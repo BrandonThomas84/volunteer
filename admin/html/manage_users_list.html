@@ -1,0 +1,100 @@
+<div class="panel panel-default" id="pendingapproval-user-cfg">
+	<div class="panel-heading">
+		<a data-toggle="collapse" data-parent="#pendingapproval-user-cfg" href="#pendingapproval-user-collapase">Pending Approval Users 
+			<span class="label label-success marg-l">2</span>
+		</a> 
+		<span class="panel-button modal-operator new-user-panel-button tooltips" data-user-type="pending_approval" data-toggle="modal" data-target="#navModal" data-title="Create a New Pending Approval User" data-modal-body="new-user-form" data-modal-form-action="/manage-users" data-save-button-text="Create Pending Approval User" data-placement="left" title="" data-original-title="Create a New Pending Approval User">
+			<span>+</span>
+		</span>
+	</div>
+	<div class="panel-body panel-collapse collapse" id="pendingapproval-user-collapase">
+		<table class="table table-striped table-hover table-responsive users-display-table">
+			<thead>
+				<tr>
+					<th class="users-table-head-id">
+						<p>#</p>
+					</th>
+					<th class="users-table-head-fst">
+						<p>First</p>
+					</th>
+					<th class="users-table-head-lst">
+						<p>Last</p>
+					</th>
+					<th class="users-table-head-eml">
+						<p>Email</p>
+					</th>
+					<th class="users-table-head-dt">
+						<p>Created</p>
+					</th>
+					<th class="users-table-head-pdcont">
+						<p>Controls / Change User Type</p>
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						<p>1</p>
+					</td>
+					<td>
+						<p>Notification</p>
+					</td>
+					<td>
+						<p>Tester</p>
+					</td>
+					<td>
+						<p>noti@tester.com</p>
+					</td>
+					<td>
+						<p>08/29/2014 21:31:56</p>
+					</td>
+					<td class="row">
+						<div class="col-md-3 col-xs-12 uu-sib">
+							<select class="update-user-control form-control">
+								<option value="pending_approval">Pending Approval</option>
+								<option value="admin">Administrative</option>
+								<option value="super_user">Super</option>
+								<option value="user">Standard</option>
+								<option value="guest">Guest</option>
+								<option value="demo">Demo</option>
+								<option value="inactive">Inactive</option>
+								<option value="refused">Refused</option>
+							</select>
+						</div><a class="col-md-3 col-xs-12 btn btn-success disabled update-user" data-user-id="8" data-user-type="" href="javascript:void(0)">Approve User</a> <a class="col-md-4 col-xs-12 col-lg-offset-1 btn btn-primary" href="/manage-users/8">Configure</a>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<p>2</p>
+					</td>
+					<td>
+						<p>Pending</p>
+					</td>
+					<td>
+						<p>User</p>
+					</td>
+					<td>
+						<p>pending@pending.com</p>
+					</td>
+					<td>
+						<p>08/29/2014 01:51:17</p>
+					</td>
+					<td class="row">
+						<div class="col-md-3 col-xs-12 uu-sib">
+							<select class="update-user-control form-control">
+								<option value="pending_approval">Pending Approval</option>
+								<option value="admin">Administrative</option>
+								<option value="super_user">Super</option>
+								<option value="user">Standard</option>
+								<option value="guest">Guest</option>
+								<option value="demo">Demo</option>
+								<option value="inactive">Inactive</option>
+								<option value="refused">Refused</option>
+							</select>
+						</div><a class="col-md-3 col-xs-12 btn btn-success disabled update-user" data-user-id="5" data-user-type="" href="javascript:void(0)">Approve User</a> <a class="col-md-4 col-xs-12 col-lg-offset-1 btn btn-primary" href="/manage-users/5">Configure</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

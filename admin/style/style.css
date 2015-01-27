@@ -553,6 +553,11 @@
 	background: rgba(0,0,0,.2);
 	margin-left: 10px;
 }
+.position-attribute-narrow-checkbox{
+	width: auto !important;
+	box-shadow: none !important;
+	margin-right: 12px !important;
+}
 .form-section {
 	margin: 0 0 30px 0;
 }
@@ -604,6 +609,10 @@
 }
 #position-attributes-container > div.form-group {
 	margin-bottom: 20px;
+}
+.form-group label > small.help {
+	color: #999;
+	display: block;
 }
 .user-perm-form {
 	background: rgba( 217, 237, 247, .65);

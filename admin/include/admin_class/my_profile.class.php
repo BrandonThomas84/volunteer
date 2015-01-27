@@ -273,7 +273,7 @@ class my_profile {
 		$user_attributes = getAttributes();
 		foreach ($user_attributes as $attr) {
 			//verify there is a name for the attribute
-			if( !empty( $attr['name'] ) && !empty( $attr['dom_id'] ) ){
+			if( !empty( $attr['name'] ) && !empty( $attr['dom_id'] ) && $attr['profile_display'] ){
 
 				//empty the field options
 				$field_options = array();

@@ -1,4 +1,5 @@
 <?php 
+	
 
 /**
 PREVENT DIRECT ACCESS TO THIS FILE
@@ -10,6 +11,23 @@ if (basename($_SERVER['PHP_SELF']) == 'functions.php') {
 require_once( __INCLUDE_PATH__ . 'settings.php');
 require_once( __FUNCTION_INCLUDE__ . 'db_functions.php');
 
+//attribute type text helper
+$attr_type_settings = array(
+	'greater_than_hrs'	=>array('helper'=>'Minimum','helper_end'=>'Hours'),
+	'greater_than_dys'	=>array('helper'=>'Minimum','helper_end'=>'Days'),
+	'greater_than_mns'	=>array('helper'=>'Minimum','helper_end'=>'Minuts'),
+	'greater_than_wks'	=>array('helper'=>'Minimum','helper_end'=>'Weeks'),
+	'greater_than_mnths'=>array('helper'=>'Minimum','helper_end'=>'Months'),
+	'greater_than_yrs'	=>array('helper'=>'Minimum','helper_end'=>'Years'),
+	'less_than_mns'		=>array('helper'=>'Maximum','helper_end'=>'Minuts'),
+	'less_than_hrs'		=>array('helper'=>'Maximum','helper_end'=>'Hours'),
+	'less_than_dys'		=>array('helper'=>'Maximum','helper_end'=>'Days'),
+	'less_than_wks'		=>array('helper'=>'Maximum','helper_end'=>'Weeks'),
+	'less_than_mnths'	=>array('helper'=>'Maximum','helper_end'=>'Months'),
+	'less_than_yrs'		=>array('helper'=>'Maximum','helper_end'=>'Years'),
+	'match'				=>array('helper'=>'Must be','helper_end'=>''),
+	'no_match'			=>array('helper'=>'Must not be','helper_end'=>''),
+);
 
 
 /**
@@ -316,14 +334,19 @@ function add_page_message( $type='default', $message, $title='Message' ){
 		$messages = json_decode( $_COOKIE['page_message'], true );
 	} 
 
+	//check for existing message key
+	if( !empty( $message[ $title ] ) ){
+		$key = $title . '-' . date('h:i:s');
+	} else {
+		$key = $title;
+	}
 	//add new message
-	$messages[ $title ] = array('type'=>$type,'msg'=>$message);	
+	$messages[ $key ] = array('type'=>$type,'msg'=>$message);	
 
 	//re encode messages
 	$new_message = json_encode( $messages );
 
-	//update the cookie
-	setcookie('page_message', $new_message, 0,'/');
+	setcookie('page_message',$new_message, 0,'/');
 
 }
 /**
@@ -521,6 +544,7 @@ function createFormInput( $option_name, $field_options ){
 	$newInput['pattern'] = ( isset( $field_options['pattern'] ) ? ' pattern="' . $field_options['pattern'] . '" ' : null );
 	$newInput['allow_blank'] = ( isset( $field_options['allow_blank'] ) ? $field_options['allow_blank'] : false );
 	$newInput['on_change'] = ( isset( $field_options['on_change'] ) ? ' onchange="' . $field_options['on_change'] . '" ' : null );
+	$newInput['display_value'] = ( isset( $field_options['display_value'] ) ? $field_options['display_value'] : null );
 
 	$field_wrapS = ( isset( $field_options['field_wrap'] ) ? $field_options['field_wrap'][0] : null );
 	$field_wrapE = ( isset( $field_options['field_wrap'] ) ? $field_options['field_wrap'][1] : null );
@@ -598,11 +622,23 @@ function createFormInput( $option_name, $field_options ){
 		if( $newInput['input_type'] == 'checkbox' && $newInput['option_value'] !== null ){
 
 			$html .= returnChecked( $newInput['option_value'], $newInput['check_value'] );
-		} else {
-			$html .= ' value="' . $newInput['option_value']  . '" ';
+		} 
+
+		//add value
+		$html .= ' value="' . $newInput['option_value']  . '" ';
+
+		$html .= $newInput['on_change'] . '>';
+		if( $newInput['input_type'] == 'checkbox' ){
+
+			//check for display value
+			if( !empty( $newInput['display_value'] ) ){
+				$html .= $newInput['display_value'] . '<br>';
+			} else {
+				$html .= $newInput['option_value']  . '<br>';
+			}
 		}
 
-		$html .= $newInput['on_change'] . '><!--END INPUT-->';
+		$html .= '<!--END INPUT-->';
 
 	} elseif( $newInput['input_type'] == 'select' ){
 

@@ -56,6 +56,29 @@ function get_positions(){
 
     return $return;
 }
+
+/**
+GET LEAD POSITIONS
+ */
+function get_lead_positions(){
+
+	global $mysqli;
+
+	//get the key
+	$stmt = $mysqli->prepare('SELECT `p`.`id`,`p`.`name`,`p`.`event_id`,`p`.`date_start`,`p`.`date_end`,`p`.`created`,`p`.`created_by`,`m`.`meta_name`,`m`.`meta_value` FROM `positions` AS `p` INNER JOIN `position_meta` AS `m` ON `p`.`id` = `m`.`position_id` AND `m`.`meta_name` = \'is_lead\' AND `m`.`meta_value` = \'true\'');
+	$stmt->execute();
+	$result = $stmt->get_result();
+
+	//if there is an option matching the value
+	$return = false;
+	if( !empty( $result ) ) {
+		while($row = $result->fetch_assoc()) {
+			$return[ $row['id'] ] = array( 'id'=>$row['id'], 'name'=>$row['name'], 'event_id'=>$row['event_id'], 'date_start'=>$row['date_start'], 'date_end'=>$row['date_end'], 'created'=>$row['created'], 'created_by'=>$row['created_by'] );
+	    }
+	}
+
+    return $return;
+}
 /**
 REMOVE POSITION 
  */
@@ -170,6 +193,7 @@ function set_position_meta_defaults(){
 		'roles' => '1',
 		'role_info'=>json_encode( array('1'=>array('status'=>'unfilled','volunteer_id'=>'','created_date'=>date('U'), 'modified_date'=>date('U') ) ) ),
 		'require_approval'=>'false',
+		'is_lead'=>'false',
 	);
 
 	return $meta_defaults;
@@ -420,7 +444,7 @@ function get_position_narrow_defaults(){
 /**
 CREATE QUERY BASED ON NARROWS
  */
-function create_narrowed_query( $narrows ){
+function create_narrowed_query( $narrows, $fields='all' ){
 
 	//set blank narows if there are any
 	$narrow_defaults = get_position_narrow_defaults();
@@ -431,7 +455,23 @@ function create_narrowed_query( $narrows ){
 	}
 
 	//start the select
-	$select_base = "SELECT DISTINCT `p`.`id`, `p`.`name`, `p`.`event_id`, `p`.`date_start`, `p`.`date_end`, `p`.`created`, `p`.`created_by`";
+	$select_base = "SELECT DISTINCT ";
+	if( $fields == 'all' ){ //add all fields if none specified
+		$select_base .= "`p`.`id`, `p`.`name`, `p`.`event_id`, `p`.`date_start`, `p`.`date_end`, `p`.`created`, `p`.`created_by`";
+	} elseif( is_array($fields)) {//if fields in array
+		$f = true;
+		foreach ($fields as $key => $value) {
+
+			//add comma if this is not the first value
+			if( !$f ){
+				$select_base .= ', ';
+			}
+			//add the field
+			$select_base .= $value;
+		}
+	} else { // if fields is string
+		$select_base .= $fields;
+	}
 
 	//start the from
 	$from_base = " FROM `positions` AS `p` ";
@@ -490,10 +530,91 @@ CREATES THE CONTENT FOR THE MODAL FOR EACH POSITION
  */
 function create_position_modal( $position_id ){
 
+	global $attr_type_settings;
+
 	//get the position information
 	$position = get_position( $position_id );
 	$pos_meta = get_position_meta_for_id( $position_id );
-	
+
+	//get all attributes to check for content
+	$attributes = getAttributes();
+	$attribute_addon = '';
+	$first_attribute = true;
+
+	//default eligability
+	$position_eligable = true;
+
+	//loop through attributes to check for position values
+	foreach( $attributes as $attr ){
+
+		//if there is a value set for the position and that it is not a profile attribute
+		if( !empty( $pos_meta['attr-' . $attr['id'] ] ) ){
+
+			//create container if this is the first atribute
+			if( $first_attribute ){ 
+				$attribute_addon .= '<div class="col-xs-12 position-attributes-container"><p class="h4">Additional Information</p><div class="col-xs-12">';
+				$first_attribute = false;
+			}
+
+			//set attribute variables
+			$attr_id = $pos_meta['attr-' . $attr['id'] ]['id'];
+			$pos_attr_settings = $pos_meta['attr-' . $attr['id'] ]['meta_value'];
+			$pos_attr_settings = json_decode( $pos_attr_settings, true );
+
+			//check if there is a control on the position and if the user is eligable
+			if( !empty( $pos_attr_settings['type'] ) && !empty( $_COOKIE['usrID'] ) ){
+				$position_eligable = position_eligable( $_COOKIE['usrID'], $attr['id'], $position_id, $pos_attr_settings['value'], $attr_type_settings[ $pos_attr_settings['type'] ]['helper'] );
+			}			
+
+			//add red color to indicate ineligability
+			$style_wraper = array( null, null, null );
+			if( !$position_eligable || empty( $position_eligable ) ){
+				$style_wraper = array('<p class="bg-danger text-danger ">','</p>',' disabled ');
+			}
+
+			if( !empty( $pos_attr_settings['value'] ) ){
+
+				//add attribute information
+				if( in_array( $attr['type'], array( 'date', 'number' ) ) ){ //if date or number
+
+					//check for limitation to apply helper label
+					if( !empty( $pos_attr_settings['type'] ) ){	
+						$attribute_addon .= '<p class="' . $attr['dom_id'] . ' attribute-title"><strong>' . $attr['name'] . ' Requirement:</strong><br><span class="attribute-requirement-text">' . $style_wraper[0] . $attr_type_settings[ $pos_attr_settings['type'] ]['helper'] . ' ' . $pos_attr_settings['value'] . ' ' . $attr_type_settings[ $pos_attr_settings['type'] ]['helper_end'] . $style_wraper[1] . '</span></p>';
+					} else {
+						$attribute_addon .= '<p class="' . $attr['dom_id'] . ' attribute-title"><strong>' . $attr['name'] . ':</strong><br><span class="attribute-requirement-text">' .  $style_wraper[0] . $pos_attr_settings['value'] . $style_wraper[1] . '</span></p>';
+					}
+
+				} elseif( in_array( $attr['type'], array( 'text' ) ) ){
+
+					$attribute_addon .= '<p class="' . $attr['dom_id'] . ' attribute-title"><strong>' . $attr['name'] . ':</strong><br><span class="attribute-requirement-text">' . $style_wraper[0] . $pos_attr_settings['value'] . $style_wraper[1] . '</span></p>';
+
+				} elseif( in_array( $attr['type'], array( 'multiple_choice' ) ) ){
+
+					//get options
+					$multiple_choice = get_option_by_id( $attr['options'] );
+					$multiple_choice = $multiple_choice['option_value'];
+					$multiple_choice = json_decode( $multiple_choice, true );
+
+					//check to see if there is a required value if not then list any
+					if( empty( $pos_attr_settings['value'] ) ){
+						$value_to_display = 'Not Specified';
+					} else {
+						$value_to_display = $multiple_choice[ $pos_attr_settings['value'] ];
+					}
+					
+					$attribute_addon .= '<p class="' . $attr['dom_id'] . ' attribute-title"><strong>' . $attr['name'] . ':</strong><br><span class="attribute-requirement-text">' . $style_wraper[0] . $value_to_display . $style_wraper[1] . ' </span></p>';
+				}			
+			} else {
+				$attribute_addon .= '<p class="' . $attr['dom_id'] . ' attribute-title"><strong>' . $attr['name'] . ':</strong><br><span class="attribute-requirement-text">Not Specified</span></p>';
+			}
+		}
+	}
+
+	//close div if it was created
+	if( !empty( $attribute_addon ) ){
+		$attribute_addon .= '</div></div>';
+	}
+
 
 	//set base vars
 	$status = $pos_meta['status']['meta_value'];
@@ -520,15 +641,20 @@ function create_position_modal( $position_id ){
 	} else {
 		$lead['image'] = 'blank_unknown.jpg';
 	}
-	
-
 
 	//start the conatainer
 	$sub_modal = '<div id="position-detail-' . $position_id . '" data-position-id="' . $position_id . '" class="fe-position-detail">';
 
 	//add lead image
 	$sub_modal .= '<div class="col-xs-12 col-md-4 text-center pos-lead-outer">';
-	$sub_modal .= '	<img class="position-lead-profile-img" alt="You will be checking in with ' . $lead['name'] . '" src="' . _PROTOCOL_ . _ROOTURL_ . '/profile-images/' . $lead['image'] . '">';
+
+	//check for image
+	if( empty( $lead['image'] ) || $lead['image'] == '' ){
+		$lead_image = 'blank_unknown.jpg';
+	} else {
+		$lead_image = $lead['image'];
+	}
+	$sub_modal .= '	<img class="position-lead-profile-img" alt="You will be checking in with ' . $lead['name'] . '" src="' . _PROTOCOL_ . _ROOTURL_ . '/profile-images/' . $lead_image . '">';
 	$sub_modal .= '	<p class="h5">Position Lead: <strong>' . $lead['name'] . '</strong></p>';
 	$sub_modal .= '	<p class="help-block"><small>Any questions or comments should be directed to the Position Lead. This will also be who you check in with when you arrive to fulfill your role.</small></p>';
 	$sub_modal .= '</div>';
@@ -579,13 +705,15 @@ function create_position_modal( $position_id ){
 	$sub_modal .= '	</div>';
 	$sub_modal .= '</div>';
 
+	//add the attribute information addon
+	$sub_modal .= $attribute_addon;
 
 	//position description
 	$description = str_replace( "\n\r" , '</p><p>', $description );	
 	$sub_modal .= '	<div class="col-xs-12 description-container">';
 	$sub_modal .= '		<p class="h4">Position Description</p>';
 	$sub_modal .= '		<div class="pos-description-inner"><p>' . $description . '</p></div>';
-	$sub_modal .= '	</div>';
+	$sub_modal .= '	</div>';	
 
 	//close info container
 	$sub_modal .= '</div>';
@@ -601,6 +729,8 @@ function create_position_modal( $position_id ){
 CREATES THE OPTIONS FOR THE POSITION NARROWS
 */
 function positionControls($init_type,$view_type,$position_narrows,$enabled_narrows=0,$class=null,$style=null){
+
+	require_once( __FUNCTION_INCLUDE__ . 'db_functions.php');
 
 	//disable on calendar view
 	$disabled_class = array(null,null);
@@ -833,7 +963,51 @@ function positionControls($init_type,$view_type,$position_narrows,$enabled_narro
 		'allow_blank'=>true,
 		);
 	$html .= createFormInput('position-events-narrow', $options);
-	$html .= '			</div>';
+	$html .= '			</div></div>';
+
+
+
+	//add attribute narrow bys
+	$attrs = getAttributes();
+	foreach ($attrs as $key => $attr ) {
+		//set the base attribute variables
+		$id = $attr['id'];
+		$name = $attr['name'];
+		$dom_id = $attr['dom_id'];
+		$type = $attr['type'];
+		$default = $attr['default'];
+		$placeholder = $attr['placeholder'];
+		$options = $attr['options'];
+		$data = $attr['data'];
+		$created = $attr['created'];
+		$required = $attr['required'];
+		$profile_display = $attr['profile_display'];
+
+		//get the values for the selected positions
+		$attr_values = getAttributeValuesForNarrow( $attr, $position_narrows);
+
+		if( !empty( $attr_values ) ){
+			//insert the title
+			$class = form_input_class_control( $init_type, 'col-xs-12 col-md-4', 'col-xs-12' );
+			$html .= '			<div class="' . $class . '">';
+			$html .= '			<label>' . ucwords( $name ) . '</label><div class="input-group" style="line-height: 40px;padding-left: 10px;">';
+			foreach ($attr_values as $key=>$value) {
+				if( $value !== '' && !empty( $value ) ){
+					$options = array(
+						'input_type' =>'checkbox',
+						'class'=>'',
+						'allow_blank'=>true,
+						'input_value'=>$key,
+						'class'=>'position-attribute-narrow-checkbox',
+						'display_value'=>$value,
+						);
+					$html .= createFormInput('position-narrow-attr-' . $id . '-' . $name . '[]', $options);
+				}
+				
+			}
+			$html .= '			</div></div><!-- CLOSE ATTRIBUTE CHECKBOXES -->';
+		}			
+	}
 
 	//show checkboxwes if in admin view
 	if( $init_type == 'admin' ){
@@ -873,8 +1047,6 @@ function positionControls($init_type,$view_type,$position_narrows,$enabled_narro
 	} else {
 		$html .= '<div class="clearfix"></div><br>';
 	}
-
-	$html .= '			</div><!-- CLOSE CHECKBOXES -->';
 	
 	//clear narrows
 	$html .= '			<div class="clearfix"></div>';
@@ -959,6 +1131,90 @@ function duplicate_position( $position_id, $num_dups=1, $event_id=null, $options
 		//run query
 		$mysqli->query( $query );
 	}
+}
+/**
+VERIFY USER ELIGABLITY
+*/
+function position_eligable( $user_id, $attribute_id, $position_id, $value, $operator ){
+	require_once( __FUNCTION_INCLUDE__ . 'user_functions.php');
+
+	//get user information
+	$user = get_user( $user_id );
+
+	//get attribute
+	$attribute = get_attribute_by_id( $attribute_id );
+
+	//get user attribute value
+	$user_attr = get_user_meta( $user_id,  $attribute['dom_id'] );
+
+	//get position information to determine comparison type
+	$requirement = get_position_meta_by_name( $position_id, 'attr-' . $attribute['id'] );
+	$requirement = $requirement['meta_value'];
+	$requirement = json_decode( $requirement, true );
+
+	//get type
+	$requirement_type = $requirement['type'];
+
+	//if there is no requirement then return true
+	if( empty( $requirement_type ) || !$requirement_type ){
+		return true;
+	}
+
+	//format as date if attribute is date type
+	if( $attribute['type'] == 'date' ){
+
+		//get difference
+		$user_value = date( 'U', strtotime( $user_attr['meta_value'] ) );
+
+		
+
+		//check for type conversion
+		if( strpos( $requirement_type, '_mns' ) ){ //minutes
+			$value = strtotime( ' - ' . $value . ' minutes' );
+		}elseif( strpos( $requirement_type, '_hrs' ) ){ //hours
+			$value = strtotime( ' - ' . $value . ' hours' );
+		}elseif( strpos( $requirement_type, '_dys' ) ){ //days
+			$value = strtotime( ' - ' . $value . ' days' );
+		}elseif( strpos( $requirement_type, '_wks' ) ){ //weeks
+			$value = strtotime( ' - ' . $value . ' weeks' );
+		}elseif( strpos( $requirement_type, '_mnths' ) ){ //months
+			$value = strtotime( ' - ' . $value . ' months' );
+		}elseif( strpos( $requirement_type, '_yrs' ) ){ //years
+			$value = strtotime( ' - ' . $value . ' years' );
+		}
+	} else {
+		$user_value = $user_attr['meta_value'];
+	}
+
+	//verify the user has entered the necessary information 
+	if( $operator == 'Minimum' && $attribute['type'] !== 'date' ){
+		if( $user_value >= $value ){
+			return true;
+		}
+	} elseif( $operator == 'Maximum' && $attribute['type'] !== 'date'  ){
+		if( $user_value <= $value ){
+			return true;
+		}
+	} elseif( $operator == 'Must be' ){
+		if( $user_value == $value ){
+			return true;
+		}
+	} elseif( $operator == 'Must not be' ){
+		if( $user_value !== $value ){
+			return true;
+		}
+	}elseif( $operator == 'Maximum' && $attribute['type'] == 'date'  ){
+		if( $user_value >= $value ){
+			return true;
+		}
+	} elseif( $operator == 'Minimum' && $attribute['type'] == 'date'  ){
+		if( $user_value <= $value ){
+			return true;
+		}
+	} 
+
+	return false;
+
 }
 
 ?>

@@ -30,8 +30,8 @@ function volunteerModalTrigger(){
         var modalContent = $(this).siblings( "."+modalContainer ).html();
 
         //replace the content for the modal
-        $("#volunteerModal").find(".modal-body").empty();
-        $("#volunteerModal").find(".modal-body").prepend( modalContent );
+        $("#volunteerModal").find(".modal-body").append( modalContent );
+        console.log( modalContent );
 
         //check for footer buttons
         var saveBtn = $(this).data("saveButton");
@@ -80,8 +80,6 @@ function volunteerModalTrigger(){
 }
 
 function showPositions(elem){
-    var state = $("#volunteerModal").attr('active-state');
-    if( state == "hidden"){
 
         //change state
         $("#volunteerModal").attr('active-state',"pos-view");
@@ -107,7 +105,7 @@ function showPositions(elem){
           $("#close-nav-modal").addClass("hidden");
           $("#close-vol-modal").addClass("hidden");
         } 
-    }   
+    
 }
 //unset a js page message
 function unsetPageMessage( key ){
@@ -126,30 +124,30 @@ function unsetPageMessage( key ){
 //trigger detail info pop up on volunteer modal
 function showPositionInfo(elem){
 
-    console.log("show: "+elem);
+    if( !$(elem).hasClass("disabled") ){
+        //set the content container
+        var positionID = $(elem).data("posId");
+        var content = "#position-detail-"+positionID;
+        var SUURL = $(elem).data("suUrl");
 
-    //set the content container
-    var positionID = $(elem).data("posId");
-    var content = "#position-detail-"+positionID;
-    var SUURL = $(elem).data("suUrl");
-    console.log( SUURL);
+        //empty the existing content
+        $("#modal-position-details-inner").empty();
+        //add the details
+        $("#modal-position-details-inner").prepend( $(content) );
+        //disable the details button
+        $(elem).addClass("disabled");
+        //slide the content down
+        $("#modal-position-details").slideDown(400,function(){
+            //fade in the content
+            $(content).fadeIn();
 
-    //empty the existing content
-    $("#modal-position-details-inner").empty();
-    //add the details
-    $("#modal-position-details-inner").prepend( $(content) );
-    //slide the content down
-    $("#modal-position-details").slideDown(400,function(){
-        //fade in the content
-        $(content).fadeIn();
+            //change the sign in url to contain the return value
+            $("#position-sign-in").attr( "href", $("#position-sign-in").attr("href")+"&pos_id="+positionID );
 
-        //change the sign in url to contain the return value
-        $("#position-sign-in").attr( "href", $("#position-sign-in").attr("href")+"&pos_id="+positionID );
-
-        //update the volunteer button
-        $("#position-sign-up").attr( "href", SUURL);
-    });
-   
+            //update the volunteer button
+            $("#position-sign-up").attr( "href", SUURL);
+        });
+    }   
 }
 
 function hidePositionInfo(){
@@ -164,6 +162,8 @@ function hidePositionInfo(){
     $("#modal-position-details-inner").empty();  
 
     $("#position-sign-up").attr( "href", "");  
+    //enable the details button
+    $(".fe-vol-info-button.disabled").removeClass("disabled");
 }
 
 function signUpForPosition(){
@@ -192,6 +192,10 @@ function triggerFormUpdateNonce(form){
 $(document).ready(function(){
     $(".tooltips").tooltip();
 
+    $('#volunteerModal').on('hidden.bs.modal', function (e) {
+      $('#volunteerModal').find(".modal-body").empty();
+    });
+
     //calendar functions
     $("#goToDate").click(function(){
 
@@ -210,7 +214,15 @@ $(document).ready(function(){
 
     //modal form submit
     $("#sub-nav-modal").click(function(){
-        $("#nav-modal-form").submit();
+        //check for required fields
+        $("#sub-nav-modal input").each(function(){
+            var attr = $(this).attr("required");
+            if (typeof attr !== typeof undefined && attr !== false && $(this).val().length > 0  ){
+                //$("#nav-modal-form").submit();
+            } else {
+                console.log( $(this).val().length );
+            }
+        });
     });
 
     //form submit through data

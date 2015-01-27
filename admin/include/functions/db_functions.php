@@ -65,7 +65,7 @@ function updateOption($option_name,$option_value,$id=null){
 
 	//check for existing value option (update vs insert)
 	$existing = get_option_by_name($option_name);
-	if( $existing ){
+	if( $existing || !empty( $id ) ){
 		$query = "UPDATE `options` SET `option_value` = '" . $option_value . "' WHERE `option_name` = '" . $option_name . "'";
 
 		//check for ID
@@ -97,7 +97,7 @@ function getAttributes(){
 	global $mysqli;
 
 	//fetch all attributes
-	$stmt = $mysqli->prepare('SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required` FROM `attributes` ORDER BY `name`');
+	$stmt = $mysqli->prepare('SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required`, `profile_display` FROM `attributes` ORDER BY `name`');
 	$stmt->execute();
 	$result = $stmt->get_result();
 
@@ -107,7 +107,7 @@ function getAttributes(){
 	//if there are values then add then to return array
 	if( !empty( $result ) ) {
 		while($row = $result->fetch_assoc()) {
-			$return[] = array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'required'=>$row['required'] );
+			$return[] = array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'required'=>$row['required'], 'profile_display'=>$row['profile_display'] );
 	    }
 	}
 
@@ -121,7 +121,7 @@ function get_attribute_by_id( $id ){
 	global $mysqli;
 
 	//fetch all attributes
-	$stmt = $mysqli->prepare('SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required` FROM `attributes` WHERE `id` = ?');
+	$stmt = $mysqli->prepare('SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required`,`profile_display` FROM `attributes` WHERE `id` = ?');
 	$stmt->bind_param('i',$id);
 	$stmt->execute();
 	$result = $stmt->get_result();
@@ -132,7 +132,7 @@ function get_attribute_by_id( $id ){
 	//if there are values then add then to return array
 	if( !empty( $result ) ) {
 		while($row = $result->fetch_assoc()) {
-			$return = array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'modified'=>$row['modified'], 'required'=>$row['required'] );
+			$return = array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'modified'=>$row['modified'], 'required'=>$row['required'], 'profile_display'=>$row['profile_display']  );
 	    }
 	}
 
@@ -153,6 +153,7 @@ function updateAttribute( $values=array() ){
 		'default'=>null,
 		'placeholder'=>null,
 		'required'=>false,
+		'profile_display'=>false,
 	);
 
 	//replace spaces with underscores and lowercase the dom ID
@@ -171,8 +172,8 @@ function updateAttribute( $values=array() ){
 
 	//check if an ID was provided (update)
 	if( !empty( $defaults['id'] ) ){
-		$stmt = $mysqli->prepare( "UPDATE `attributes` SET `name` = ?,`dom_id` = ?,`type` = ?,`default` = ?,`placeholder` = ?, `modified` = CURRENT_TIMESTAMP, `required` = ? WHERE `id` = ?" );
-		$stmt->bind_param('sssssii', $defaults['name'], $defaults['dom_id'], $defaults['type'], $defaults['default'], $defaults['placeholder'], $defaults['required'], $defaults['id'] );
+		$stmt = $mysqli->prepare( "UPDATE `attributes` SET `name` = ?,`dom_id` = ?,`type` = ?,`default` = ?,`placeholder` = ?, `modified` = CURRENT_TIMESTAMP, `required` = ?, `profile_display` = ? WHERE `id` = ?" );
+		$stmt->bind_param('sssssiid', $defaults['name'], $defaults['dom_id'], $defaults['type'], $defaults['default'], $defaults['placeholder'], $defaults['required'], $defaults['profile_display'], $defaults['id'] );
 		$stmt->execute();
 	} else {
 
@@ -185,8 +186,8 @@ function updateAttribute( $values=array() ){
 		$data_id = $mysqli->insert_id;
 
 		//insert the attribute
-		$stmt = $mysqli->prepare( "INSERT INTO `attributes` (`name`, `dom_id`, `type`, `default`, `placeholder`, `options_option_id`, `data_option_id`,`required`) VALUES (?,?,?,?,?,?,?,?)" );
-		$stmt->bind_param('sssssiid', $defaults['name'], $defaults['dom_id'], $defaults['type'], $defaults['default'], $defaults['placeholder'], $options_id, $data_id, $defaults['required']);
+		$stmt = $mysqli->prepare( "INSERT INTO `attributes` (`name`, `dom_id`, `type`, `default`, `placeholder`, `options_option_id`, `data_option_id`,`required`, `profile_display`) VALUES (?,?,?,?,?,?,?,?,?)" );
+		$stmt->bind_param('sssssiidd', $defaults['name'], $defaults['dom_id'], $defaults['type'], $defaults['default'], $defaults['placeholder'], $options_id, $data_id, $defaults['required'], $defaults['profile_display']);
 		$stmt->execute();
 	}
 
@@ -225,7 +226,7 @@ function removeAtrribute( $attr_id ){
 /**
 GET FOR REQUIRED ATTTRIBUTES
 */
-function get_required_attributes( $date=null ){
+function get_required_attributes( $date=null, $profile_display=false ){
 
 	global $mysqli;
 
@@ -235,7 +236,12 @@ function get_required_attributes( $date=null ){
 	}
 
 	//get a distinct list of ID's for any positions that hasn't occured
-	$query = 'SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required` FROM `attributes` WHERE `required` = 1';
+	$query = 'SELECT `id`,`name`,`dom_id`,`type`,`default`,`placeholder`,`options_option_id`,`data_option_id`,`created`,`modified`,`required`, `profile_display` FROM `attributes` WHERE `required` = 1';
+
+	//check for profile view only indicator
+	if( $profile_display ){
+		$query .= ' AND `profile_display` = 1 ';
+	}
 
 	$stmt = $mysqli->prepare( $query );
 	$stmt->execute();
@@ -247,10 +253,77 @@ function get_required_attributes( $date=null ){
 	//if there are required attirbutes create array of them
 	if( !empty( $result ) ) {
 		while($row = $result->fetch_assoc()) {
-			$req_attr[]= array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'modified'=>$row['modified'], 'required'=>$row['required'] );
+			$req_attr[]= array( 'id'=>$row['id'], 'name'=>$row['name'], 'dom_id'=>$row['dom_id'], 'type'=>$row['type'], 'default'=>$row['default'], 'placeholder'=>$row['placeholder'], 'options'=>$row['options_option_id'], 'data'=>$row['data_option_id'], 'created'=>$row['created'], 'modified'=>$row['modified'], 'required'=>$row['required'], 'profile_display'=>$row['profile_display'] );
 	    }
 
 	    return $req_attr;
+	} else {
+		return false;
+	}
+
+}
+
+/**
+GET ATTIRBUTE VALUES FROM POSITIONS FOR NARROW BYS
+ */
+function getAttributeValuesForNarrow( $attr, $narrows ){
+
+	global $mysqli, $attr_type_settings;
+
+	//set blank return
+	$return = array();
+
+	//create the query from narrow selections for IN value
+	$narrow_query = create_narrowed_query( $narrows, '`p`.`id`' );
+
+	//start the query
+	$query_base = "SELECT `p`.`id`,`p`.`name`,`p`.`event_id`,`p`.`date_start`,`p`.`date_end`,`p`.`created`,`p`.`created_by`,`m`.`id` AS `meta_id`,`m`.`meta_name`,`m`.`meta_value` FROM `positions` AS `p`	INNER JOIN `position_meta` AS `m` ON `m`.`position_id` = `p`.`id` WHERE `m`.`meta_name` = 'attr-" . $attr['id'] . "' AND `p`.`id` IN (" . $narrow_query . ")";
+
+	$stmt = $mysqli->prepare( $query_base );
+	$stmt->execute();
+	$result = $stmt->get_result();
+
+	//if there are required attirbutes create array of them
+	if( !empty( $result ) ) {
+		while( $row = $result->fetch_assoc() ) {
+			//set the meta value var
+			$meta_value = $row['meta_value'];
+
+			//decode the value
+			$meta_value = json_decode($meta_value, true);
+
+			//set basic display valye
+			$display_value = $meta_value['value'];
+
+			//if multiple choice conver the value to the 
+			if( $attr['type'] == 'multiple_choice' ){
+
+				//get the options
+				$options = get_option_by_id( $attr['options'] );
+				$options = json_decode( $options['option_value'], true );
+				if( !empty( $options ) && !empty( $meta_value['value'] ) ){
+					$display_value = $options[ $meta_value['value'] ];
+				} 
+			} 
+
+			//check for value and add helper content if so
+			if( !empty( $meta_value['type'] ) ){
+				$text_value = $attr_type_settings[ $meta_value['type'] ]['helper'] . ' ' . $display_value . ' ' . $attr_type_settings[ $meta_value['type'] ]['helper_end'];
+			} else {
+				$text_value = $display_value;
+			}
+
+			//add to array if not present
+			if( empty( $return[ $meta_value['value'] ] ) && !empty( $meta_value['value'] ) ){
+			
+				$return[ $meta_value['value'] ] =  $text_value;
+			}
+
+	    }
+
+	    return $return;
+
+	   
 	} else {
 		return false;
 	}

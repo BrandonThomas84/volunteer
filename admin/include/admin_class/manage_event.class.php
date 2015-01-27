@@ -112,6 +112,17 @@ class manage_event {
 					$open_enrollment_update = 'DISBALED';
 					update_event_meta( $_POST['event-id'], 'open_enrollment', 'off' );
 				}
+
+				//check for no email allowance
+				if( isset( $_POST['event-allow-no-email'] ) ){
+					$open_enrollment_update = 'ENABLED';
+					update_event_meta( $_POST['event-id'], 'allow_no_email', 'on' );
+				} else {
+					$open_enrollment_update = 'DISBALED';
+					update_event_meta( $_POST['event-id'], 'allow_no_email', 'off' );
+				}
+
+				
 				
 				//run update on event
 				$update = update_event( $newStatus, $_POST['event-name'], $_POST['event-id'] );
@@ -185,10 +196,21 @@ class manage_event {
 	}
 
 	private function eventDetails( $event ){
+
+		//set base variables
 		$id = $event['id'];
 		$name = $event['name'];
 		$slug = $event['slug'];
 		$status = $event['status'];
+
+		//meta variables
+		$open_enrollment = get_event_meta( $id, 'open_enrollment');
+		$open_enrollment = $open_enrollment['meta_value'];
+
+		$allow_no_email = get_event_meta( $id, 'allow_no_email');
+		$allow_no_email = $allow_no_email['meta_value'];
+
+
 
 		//created info variables
 		$created = get_event_meta( $id, 'created' );
@@ -241,12 +263,26 @@ class manage_event {
 		$html .= '				<label class="col-sm-5 col-md-4 control-label">Open Enrollment:</label>';
 		$html .= '				<div class="col-sm-7 col-md-8">';
 		$html .= '					<div class="onoffswitch">';
-    	$html .= '						<input type="checkbox" name="event-open-enrollment" class="onoffswitch-checkbox" id="openEnrollmentSwitch" ' . returnChecked($status,'on') . '>';
+    	$html .= '						<input type="checkbox" name="event-open-enrollment" class="onoffswitch-checkbox" id="openEnrollmentSwitch" ' . returnChecked($open_enrollment,'on') . '>';
     	$html .= '						<label class="onoffswitch-label" for="openEnrollmentSwitch">';
         $html .= '							<span class="onoffswitch-inner"></span>';
         $html .= '							<span class="onoffswitch-switch"></span>';
     	$html .= '						</label>';
     	$html .= '					</div><p class="help">This allows users to request to be added to a list of floating volunteers that can be added to individual positions later.</p>';
+		$html .= '				</div>';
+		$html .= '			</div>';
+
+		//allow registration with phone number only
+		$html .= '			<div class="form-group col-sm-12 col-md-4">';
+		$html .= '				<label class="col-sm-5 col-md-4 control-label">No Email Registration:</label>';
+		$html .= '				<div class="col-sm-7 col-md-8">';
+		$html .= '					<div class="onoffswitch">';
+    	$html .= '						<input type="checkbox" name="event-allow-no-email" class="onoffswitch-checkbox" id="noEmailRegSwitch" ' . returnChecked($allow_no_email,'on') . '>';
+    	$html .= '						<label class="onoffswitch-label" for="noEmailRegSwitch">';
+        $html .= '							<span class="onoffswitch-inner"></span>';
+        $html .= '							<span class="onoffswitch-switch"></span>';
+    	$html .= '						</label>';
+    	$html .= '					</div><p class="help">This allows users to sign up without an email address listed on their account. They will be required to submit a phone number instead.</p>';
 		$html .= '				</div>';
 		$html .= '			</div>';
 

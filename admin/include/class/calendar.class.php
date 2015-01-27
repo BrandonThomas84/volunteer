@@ -203,6 +203,12 @@ class calendar {
 		$short_date = date('Y-m-d', strtotime( $date_string ) );
 		$long_date = date('Y-m-d H:i:s A T', strtotime( $date_string ) );
 
+		//check if day is in past
+		$in_past_class = null;
+		if( strtotime( $date_string ) < date('U') ){
+			$in_past_class = ' date-in-past ';
+		}
+
 		//verify there are any positions
 		if( !empty( $this->position_array ) ){
 			
@@ -226,9 +232,19 @@ class calendar {
 		//set the count of positions
 		$positions = count( $day_positions );
 
+		//if there are more than 0 available positions
+		if( $positions > 0 ){
+			$label_type = 'success';
+			$cal_day_class = null;
+		} else {
+			$label_type = 'danger';
+			$show_options = false;
+			$cal_day_class = 'no-positions';
+		}
+
 		//check for alternate month to start the day block
 		if( $alternate_month ){
-			$day_html = '<div class="calendar-day alternate-month">';
+			$day_html = '<div class="calendar-day alternate-month ' . $cal_day_class . '">';
 			$show_options = false;
 		} else {
 
@@ -237,20 +253,15 @@ class calendar {
 			if( !empty( $this->day_num ) ){
 				if( $this->day_num == $date ){
 					$today = ' cal-today ';
+
+					//reset the in past class
+					$in_past_class = null;
 				}
 			}
 
 			$dayClass = ' day-' . strtolower( date('l', strtotime($year . '-' . $month . '-' . $date ) ) );
-			$day_html = '<div class="calendar-day' . $today . $dayClass . '">';
+			$day_html = '<div class="calendar-day' . $today . $dayClass . $in_past_class . ' ' . $cal_day_class . '">';
 			$show_options = true;
-		}
-
-		//if there are more than 0 available positions
-		if( $positions > 0 ){
-			$label_type = 'success';
-		} else {
-			$label_type = 'danger';
-			$show_options = false;
 		}
 		
 		$day_html .= '  <div class="row">';
@@ -258,10 +269,14 @@ class calendar {
 		$day_html .= '  </div><!--close row-->';
 
 		//insures options are only shown for the current month
-		if( $show_options ){
+		if( $show_options && !empty( $day_positions ) ){
 
-			//position number
-			$day_html .= '  <span class="label label-' . $label_type . ' avail-positions tooltips" data-toggle="tooltip" data-placement="top" title="' . $positions . ' Available Positions for ' . $friendly_date . '">' . $positions . '</span>';
+			//number of available positions or past notification
+			if( empty( $in_past_class ) ) {
+				$day_html .= '  <span class="label label-' . $label_type . ' avail-positions tooltips" data-toggle="tooltip" data-placement="top" title="' . $positions . ' Available Positions for ' . $friendly_date . '">' . $positions . '</span>';
+			} else {
+				$day_html .= '  <span class="label label-' . $label_type . ' avail-positions tooltips" data-toggle="tooltip" data-placement="top" title="You cannot sign up for positions for events which have already occured">' . $positions . '</span>';
+			}
 
 			//check cal type for trigger
 			if( $this->calType == 'admin' ){
@@ -269,11 +284,17 @@ class calendar {
 			} else {
 				$trigger = '" onClick="showPositions(this)" ';
 			}
+
+			//check for in past class to apply disabled to button 
+			$disabled_button = null;
+			if( !empty( $in_past_class ) ){
+				$disabled_button = ' disabled ';
+			}
 			//modal button trigger
-			$day_html .= '  <button class="btn btn-default btn-sm glyphicon glyphicon-plus ' . $trigger . ' data-toggle="modal" title="Click here to view the ' . $positions . ' volunteer oppportunities on this day" data-target="#volunteerModal" data-title="Positions for ' . date('m/d/Y', strtotime( $year . '-' . $month . '-' . $date ) ) . '" data-modal-body="modal-' . date('U', strtotime( $year . '-' . $month . '-' . $date ) ) . '" data-save-button="hide"></button>';
+			$day_html .= '  <button class="btn btn-default btn-sm glyphicon glyphicon-plus ' . $disabled_button . $trigger . ' data-toggle="modal" title="Click here to view the ' . $positions . ' volunteer oppportunities on this day" data-target="#volunteerModal" data-title="Positions for ' . date('m/d/Y', strtotime( $year . '-' . $month . '-' . $date ) ) . '" data-modal-body="modal-' . date('U', strtotime( $year . '-' . $month . '-' . $date ) ) . '" data-save-button="hide"></button>';
 
 			//create modal body
-			$day_html .= '<div class="hidden modal-' . date('U', strtotime( $year . '-' . $month . '-' . $date ) ) . '">' . $this->cal_modal_body( $day_positions ) . '</div>';
+			$day_html .= '<div class="hidden modal-' . date('U', strtotime( $year . '-' . $month . '-' . $date ) ) . '">' . $this->cal_modal_body( $day_positions, date('U', strtotime( $year . '-' . $month . '-' . $date ) ) ) . '</div>';
 		} else {
 
 			//previous month 
@@ -286,13 +307,13 @@ class calendar {
 	/**
 	CREATES THE POSITION DAY MODAL CONTENT 
 	 */
-	private function cal_modal_body( $positions ){
+	private function cal_modal_body( $positions, $modal_body_id_date ){
 
 		//check for month and year selection
 		$breadcrumb_add = '?bcsuppy=' . $this->year . '&bcsuppm=' . $this->month;
 		
 		//start table
-		$html = '<div id="cal-day-modal-body" class="table-responsive"><table class="table table-striped table-hover"><thead><tr><th>Event</th><th>Name</th>';
+		$html = '<div data-content="cal-day-modal-body' . $modal_body_id_date . '" class="table-responsive"><table class="table table-striped table-hover"><thead><tr><th>Event</th><th>Name</th><th>Start Date / Time</th>';
 
 		//change column names for front end
 		if( $this->calType == 'admin' ){
@@ -320,7 +341,7 @@ class calendar {
 				$href = _ROOT_ . '/manage-position/' . $pos['id'] . $breadcrumb_add;
 
 				//create row that links to a new page
-				$html .= '<tr><td><a href="' . $href . '">' . $event['name'] . '</a></td><td><a href="' . $href . '">' . $pos['name'] . '</a></td><td><a href="' . $href . '">' . $status . '</a></td></tr>';
+				$html .= '<tr><td><a href="' . $href . '">' . $event['name'] . '</a></td><td><a href="' . $href . '">' . $pos['name'] . '</a></td><td><a href="' . $href . '">' . $status . '</a></td><td><a href="' . $href . '">' . date('m/d/Y - h:i', $pos['date_start'] ) . '</a></td></tr>';
 
 			} else {
 
@@ -335,7 +356,7 @@ class calendar {
 					$submit_url = create_return_url( _PROTOCOL_ . _FRONTEND_URL_, array('m','y'), array('signup'=>'true','pos_id'=>$pos['id'], 'user_id'=>$this->user_id ) );
 
 					//create row that triggers new modal content
-					$html .= '<tr><td>' . $event['name'] . '</td><td>' . $pos['name'] . '</td><td><span class="btn btn-primary fe-vol-info-button" data-pos-id="' . $pos['id'] . '" data-position-title="' . $pos['name'] . '" onClick="showPositionInfo(this)" data-su-url="' . $submit_url . '">View Details</span><div id="modal-content-home-' . $pos['id'] . '" class="hidden">' . $sub_modal . '</div></td></tr>';
+					$html .= '<tr><td>' . $event['name'] . '</td><td>' . $pos['name'] . '</td><td>' . date('m/d/Y - h:i A', $pos['date_start'] ) . '</td><td><span class="btn btn-primary fe-vol-info-button" data-pos-id="' . $pos['id'] . '" data-position-title="' . $pos['name'] . '" onClick="showPositionInfo(this)" data-su-url="' . $submit_url . '">View Details</span><div id="modal-content-home-' . $pos['id'] . '" class="hidden">' . $sub_modal . '</div></td></tr>';
 				}
 
 			}

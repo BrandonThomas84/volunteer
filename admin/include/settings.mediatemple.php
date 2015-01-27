@@ -12,7 +12,7 @@ date_default_timezone_set('America/Los_Angeles');
 define('_DIRSEP_',DIRECTORY_SEPARATOR);
 
 # Root Directory (no trailing slash)
-define('_FRONTEND_URL_','volunteer');
+define('_FRONTEND_URL_','nccna-volunteer.org');
 
 # Admin panel folder name
 define('_ADMIN_FOLDER_','admin');
@@ -57,16 +57,16 @@ define('_ROOT_', _PROTOCOL_ . _ROOTURL_ );
 define('_SECURE_ROOT_','https://' . _ROOTURL_ );
 
 # Database host name
-define('_DB_SERVER_','localhost');
+define('_DB_SERVER_','internal-db.s201990.gridserver.com');
 
 # Database user name
-define('_DB_USER_','brandon');
+define('_DB_USER_','db201990');
 
 # Database password
-define('_DB_PASSWD_','Iamtheone1!');
+define('_DB_PASSWD_','^BzKO4@X6NsG');
 
 # Database name
-define('_DB_NAME_','volunteer');
+define('_DB_NAME_','db201990_volunteer');
 
 # Max Number of Login Attempts before lockout
 define('_MAX_LOGINS_ATTEMPTS_','5');

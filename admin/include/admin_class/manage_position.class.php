@@ -116,6 +116,7 @@ class manage_position {
 				update_position_meta( $_GET['function'], 'status', $newStatus );
 				submission_redirect('/manage-position/' . $_GET['function'] );
 			}
+			add_page_message('success','Status Updated','Status');
 		}
 
 		//check to see if create new position is submitted
@@ -128,6 +129,8 @@ class manage_position {
 
 				//update position information
 				$this->updatePosition( $newID );
+
+				add_page_message('success','New Position Created: ' . $_POST['settings-position-name'] .', You can further change settings below.' ,'Created');
 
 				submission_redirect('/manage-position/' . $newID  );
 
@@ -236,6 +239,7 @@ class manage_position {
 		update_position_meta($position_id, 'location_state', $_POST['settings-position-location_state'] );
 		update_position_meta($position_id, 'location_zip', $_POST['settings-position-location_zip'] );
 		update_position_meta($position_id, 'description', $_POST['settings-position-description'] );
+		update_position_meta($position_id, 'is_lead', $_POST['settings-position-is-lead'] );
 
 		//update standard notifications
 		$core_notifications = get_position_meta_by_name( $position_id,'notifications');
@@ -256,8 +260,10 @@ class manage_position {
 		update_position_meta($position_id, 'notifications', $new_notifications );
 
 		//update custom notifications
-		$noti_string = str_replace(array("'",",]","[,"), array('"',"]","["), $_POST['custom-notifications-json'] );
-		update_position_meta($position_id, 'custom_notifications', $noti_string );
+		if( isset( $_POST['custom-notifications-json'] ) ){
+			$noti_string = str_replace(array("'",",]","[,"), array('"',"]","["), $_POST['custom-notifications-json'] );
+			update_position_meta($position_id, 'custom_notifications', $noti_string );
+		}
 
 		//update the volunteer roles
 		$num_roles = (int) $_POST['settings-position-roles'];
@@ -377,6 +383,8 @@ class manage_position {
 			$meta_val = json_encode( $meta_val );
 			update_position_meta($position_id, 'attr-' . $attr['id'], $meta_val );
 
+			add_page_message('success','Position Updated: ' . $_POST['settings-position-name'],'Updated');
+
 		}
 
 		//check for create duplicate trigger and create new positions
@@ -394,7 +402,7 @@ class manage_position {
 			add_page_message('success','The position has been duplicated ' . $iterations . ' times.','Duplicated');
 
 			//change the redirect location
-			$this->submission_redirect_change = _ROOTURL_ . '/manage-position';
+			$this->submission_redirect_change = '/manage-position';
 		}
 		
 	}
@@ -779,15 +787,15 @@ class manage_position {
 
 		$html .= '<div class="clearfix"></div><br class="visible-md-block visible-lg-block">';
 
-		//position lead
+		//get users that are not solely volunteers
 		$lead_options = get_users();
 		if( $lead_options ){
 			foreach($lead_options as $user) {
-				$leads[ $user['id'] ] = $user['first_name'] . ' ' . $user['last_name'] . ' (e:' . $user['email'] . ')';
+				$leads[ $user['id'] ] = $user['first_name'] . ' ' . $user['last_name'] . ' (ADMIN USER e:' . $user['email'] . ')';
 			}
 		} else {
 			$leads = array();
-		}
+		}		
 
 		$options = array(
 				'check_value'=>$position_meta['lead'],
@@ -860,6 +868,18 @@ class manage_position {
 				'check_value'=>$position_meta['notify'],
 			);
 		$html .= '<div class="form-group col-xs-12 col-md-3"><div class="input-group">' . createFormInput( 'position-notify', $options ) . '</div></div>';	
+
+		//is lead position
+		$options = array(
+				'input_addon_start'=>'Is Lead',
+				'option_name'=>'position-is-lead',
+				'required'=>true,
+				'input_type'=>'select',
+				'options'=>array('true'=>'YES','false'=>'NO'),
+				'check_value'=>$position_meta['is_lead'],
+				'allow_blank'=>false,
+			);
+		$html .= '<div class="form-group col-xs-12 col-md-3"><div class="input-group">' . createFormInput( 'position-is-lead', $options ) . '</div></div>';	
 
 		//insert a break before the de"scription
 				$html .= '<div class="clearfix"></div><br>';

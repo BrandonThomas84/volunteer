@@ -1,3 +1,4 @@
+
 DROP TABLE IF EXISTS `attributes`;
 CREATE TABLE `attributes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -11,6 +12,7 @@ CREATE TABLE `attributes` (
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified` timestamp NULL DEFAULT NULL,
   `required` double DEFAULT '0',
+  `profile_display` double DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`,`dom_id`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -69,7 +71,7 @@ DROP TABLE IF EXISTS `options`;
 CREATE TABLE `options` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `option_name` varchar(150) NOT NULL,
-  `option_value` varchar(150) NOT NULL,
+  `option_value` longtext NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 DROP TABLE IF EXISTS `position_meta`;

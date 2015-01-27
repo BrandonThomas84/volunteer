@@ -521,7 +521,7 @@ $(document).ready(function(){
 
             var user_id = $(button).data('userId');
 
-            $(button).prop("href","/manage-users/?approve="+user_id+"&utype="+type);
+            $(button).prop("href","/admin/manage-users/?approve="+user_id+"&utype="+type);
             $(button).removeClass("disabled");
         } else {
             $(button).prop("href","javascript:void(0)");
@@ -568,8 +568,8 @@ $(document).ready(function(){
 
     //add new attribute multiple choice option
     $("#new-attr-option-btn").click(function(){
-        var DBVal = $("#settings-attr-option-key-new").val().toLowerCase().replace(/ /g, '_');
-        var DisplayVal = $("#settings-attr-option-value-new").val();
+        var DBVal = $("#settings-attr-option-key-new").val().toLowerCase().replace(/ /g, '_').replace(/'/g, '');
+        var DisplayVal = $("#settings-attr-option-value-new").val().replace(/'/g, '');
         
         //verify they are filled in
         if( ( DisplayVal !== typeof undefined && DisplayVal !== false && DisplayVal !== '' )  && ( DBVal !== typeof undefined && DBVal !== false && DBVal !== '' ) ){

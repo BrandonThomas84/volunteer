@@ -582,13 +582,13 @@ function verify_required_attributes(){
 
 	//check for missing requirements and set cookie
 	require_once( __FUNCTION_INCLUDE__ . 'db_functions.php');
-	$required_atts = get_required_attributes();
+	$required_atts = get_required_attributes(null,true);
 
 	//set var to determine if cookie should be set
 	$missing = false;
 
 	//if there are required attributes
-	if( $required_atts ){
+	if( $required_atts && $required_atts[0]['profile_display'] ){
 
 		//if there are required attributes verify the user has them inserted
 		foreach( $required_atts as $attr ){

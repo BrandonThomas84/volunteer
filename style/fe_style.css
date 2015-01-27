@@ -25,6 +25,11 @@
 #volunteer-signup-narrows .input-group {
 	width: 100%;
 }
+.position-attribute-narrow-checkbox{
+	width: auto !important;
+	box-shadow: none !important;
+	margin-right: 12px !important;
+}
 
 
 
@@ -89,13 +94,15 @@
  	text-shadow: rgb(0,0,0) 1px 1px 0px;
  	border: 1px solid rgb(65,135,197);
  }
- .calendar-day.alternate-month .row > .calendar-day-head  {
+ .calendar-day.alternate-month .row > .calendar-day-head,
+ .calendar-day.date-in-past .row > .calendar-day-head {
  	background: rgba(0,0,0,.2);
  	color: #d9d9d9;
  	text-shadow: rgba(0,0,0,.4) 0px 0px 1px;
  	border: 1px solid rgba(0,0,0,.4);
  }
- .calendar-day.alternate-month .label {
+ .calendar-day.alternate-month .label,
+ .calendar-day.date-in-past .label {
  	background: #efefef;
  	color: #999;
  }
@@ -131,8 +138,19 @@
  	background: rgba( 34,139,34,1);
  }
  .calendar-day.alternate-month .avail-positions.label-success:hover,
- .calendar-day.alternate-month .avail-positions.label-danger:hover {
+ .calendar-day.alternate-month .avail-positions.label-danger:hover,
+ .calendar-day.date-in-past .avail-positions.label-success:hover,
+ .calendar-day.date-in-past .avail-positions.label-danger:hover{ 
  	background: rgba( 0,0,0,.8);
+ }
+ .calendar-day.alternate-month {
+ 	opacity: .25;
+ }
+ .calendar-day.no-positions{
+ 	opacity: .5;
+ }
+ .calendar-day.cal-today.no-positions{
+ 	opacity: .8;
  }
 .fe-position-detail img.position-lead-profile-img {
 	max-width: 75%;

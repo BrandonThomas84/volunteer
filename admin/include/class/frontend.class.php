@@ -98,7 +98,9 @@ class frontend {
 			assign_user_to_volunteer( $role[0]['volunteer_id'], $user_id);
 		}
 	}
-
+/**
+SET POSITION NARROW BYS 
+*/
 	public function set_position_narrows(){
 
 		//update th narrow cookie
@@ -113,7 +115,9 @@ class frontend {
 		//return the position controls
 		return positionControls( 'frontend', $view_type, $this->position_narrows, $enabled_narrows, $class, $style );
 	}
-
+/**
+UPDATE THE JSON VALUE HELD BY THE NARROWING
+*/
 	private function updateNarrowCookie(){	
 	
 		//change the object scope properties

@@ -113,7 +113,7 @@ class login {
 			$form_html .= '      <div class="col-sm-12">'; 
 
 			//create a return to frontend link that includes get vars
-			$frontend_link = create_return_url( _FRONTEND_URL_ );
+			$frontend_link = create_return_url( _PROTOCOL_ . _FRONTEND_URL_ );
 
 			//insert return to frontend link
 			$form_html .= '		 	<a class="btn btn-link btn-block" id="frontend-link" href="' . $frontend_link . '">Return to Volunteer Sign Up</a>';
@@ -129,7 +129,24 @@ class login {
 
 	public static function createNewUserForm($user_type = false){
 
-		$form_html = '<div class="container-fluid">';
+		//check for events that allow for phone only registration
+		require_once( __FUNCTION_INCLUDE__ . 'event_functions.php');
+		$allow_phone_only = false;
+		$events = get_events();
+		if( !empty( $events ) ){
+			foreach( $events as $id=>$e){
+				$test = get_event_meta( $id, 'allow_no_email' );
+				if( $test && $test['meta_value'] == 'on' ){
+					$allow_phone_only = true;
+				}
+			}
+		}
+
+		//add script to amend the required fields
+		$form_html = '<script>jQuery(document).ready(function(){ var attr = $("#new-vol-email").attr("required");if (typeof attr == typeof undefined || attr == false){$("#new-vol-phone").prop("required",true);} else {console.log( attr );} });</script>';
+
+		//start container
+		$form_html .= '<div class="container-fluid">';
 
 		//hidden field works as a place holder to search for username pass combo
 		$form_html .= '		<input type="hidden" name="newUser" value="true">';
@@ -143,8 +160,13 @@ class login {
 		$form_html .= '    <input type="text" name="last_name" class="form-control" placeholder="Last Name" required="required">';
 
 		//username input
+		if( $allow_phone_only ){ $email_req = null; } else { $email_req = ' required="required '; }
 		$form_html .= '    <label>Email Address</label>';
-		$form_html .= '    <input type="email" name="username" class="form-control" placeholder="Email address" required="required" autofocus="" autocomplete="off" >';
+		$form_html .= '    <input id="new-vol-email" type="email" name="username" class="form-control" placeholder="Email address" ' . $email_req . 'autofocus="" autocomplete="off" >';
+
+		//phone number repeat input
+		$form_html .= '    <label>Phone Number</label>';
+		$form_html .= '    <input id="new-vol-phone" type="tel" name="phone" class="form-control" placeholder="555.555.5555" autocomplete="off" ><br>';
 
 		//password input
 		$form_html .= '    <label>Password</label>';

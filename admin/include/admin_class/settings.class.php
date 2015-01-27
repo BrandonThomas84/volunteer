@@ -46,6 +46,13 @@ class settings {
 				$this->attr_required = false;
 			}
 
+			//set profile display
+			if( $attr['profile_display'] ){
+				$this->attr_profile_display = true;
+			} else {
+				$this->attr_profile_display = false;
+			}
+
 			//set page values
 			$this->title = $this->attr_name . ' - Attribute Settings';
 			$this->subtitle = 'Change options for the ' . $this->attr_name . ' position attribute';
@@ -74,6 +81,29 @@ class settings {
 
 		//verify license
 		$verify = verifyLicense();
+		$reload = false;
+
+		//check for new attribute submission from settings page
+		if( isset( $_POST['new-attr-from-core'] ) && $_POST['new-attr-from-core'] == 'true' ){
+
+			//if the name has been set
+			if( isset( $_POST['settings-new_attr_name'] ) ){
+				
+				//set the vars
+				$name = $_POST['settings-new_attr_name'];
+				$id = $_POST['settings-new_attr_id'];
+				$type = $_POST['settings-new_attr_type'];
+
+				//set the new value array
+				$newAttrVal = array( 'name'=>$name, 'dom_id'=>$id, 'type'=>$type );
+
+				//run insert
+				$update = updateAttribute($newAttrVal);
+
+				//reload the page
+				submission_redirect( '/settings/' . $update);
+			}
+		}
 
 		//check for delete
 		if( isset( $_GET['remv'] ) && $_GET['remv'] == 'true' ){
@@ -99,55 +129,40 @@ class settings {
 				}
 			}
 
+
+			//check for profile_display
+			if( isset( $_POST['settings-attr-profile-display-onoff'] ) ){
+				$values['profile_display'] = 1;
+			} else {
+				$values['profile_display'] = 0;
+			}	
+
 			//check for required
 			if( isset( $_POST['settings-attr-require-onoff'] ) ){
 				$values['required'] = 1;
+				$values['profile_display'] = 1;
 			} else {
 				$values['required'] = 0;
-			}			
+			}
 			
 			//update the attribute
 			updateAttribute( $values );
-			submission_redirect( '/settings/' . $_GET['function']);
-		}
 
-		//check for new attribute submission from settings page
-		if( isset( $_POST['new-attr-from-core'] ) && $_POST['new-attr-from-core'] == 'true' ){
-
-			if( isset( $_POST['settings-new_attr_name'] ) ){
-				
-				//set the vars
-				$name = $_POST['settings-new_attr_name'];
-				$id = $_POST['settings-new_attr_id'];
-				$type = $_POST['settings-new_attr_type'];
-
-				//set the new value array
-				$newAttrVal = array( 'name'=>$name, 'dom_id'=>$id, 'type'=>$type );
-
-				//run insert
-				$update = updateAttribute($newAttrVal);
-
-				//reload the page
-				submission_redirect( '/settings/' . $update);
-			}
-
-			submission_redirect( '/settings/' . $_GET['function'] );
+			$reload = true;
 		}
 
 		//check for attribute options addition
 		if( isset( $_POST['attr-options-updated'] ) && $_POST['attr-options-updated'] == 'true' ){
 
-			//get the options ID
+			//get the multiple choice options DB ID
 			$attr = get_attribute_by_id( $_GET['function'] );
-			$options_id = $attr['options'];
 
 			//set the options attribute
 			$newOptionVal = '{' . rtrim($_POST['attr-options-compiled'], ',') . '}';
 			$newOptionVal = str_replace( '\'', '"', $newOptionVal );
-			updateOption('attr_options', $newOptionVal, $options_id);
+			updateOption('attr_options', $newOptionVal, $attr['options'] );
 
-			//redirect after update to prevent resubmission
-			submission_redirect( '/settings/' . $_GET['function'] );
+			$reload = true;
 		}
 		//check for attribute data update
 		if( isset( $_POST['attr-data-updated'] ) && $_POST['attr-data-updated'] == 'true' ){
@@ -161,8 +176,7 @@ class settings {
 			$newOptionVal = str_replace( '\'', '"', $newOptionVal );
 			updateOption('attr_data', $newOptionVal, $data_id);
 
-			//redirect after update to prevent resubmission
-			submission_redirect( '/settings/' . $_GET['function'] );
+			$reload = true;
 		}
 
 		//check for a settings update
@@ -178,9 +192,15 @@ class settings {
 				updateOption('development_mode','off');
 			}
 
-			//redirect after update to prevent resubmission
-			submission_redirect( '/settings/' );
+			$reload = true;
 		}
+
+		//redirect after update to prevent resubmission
+		$reload_url = '/settings/';
+		if( isset( $_GET['function'] ) ){
+			$reload_url .= $_GET['function'];
+		}
+		if($reload){ submission_redirect( $reload_url ); }
 			
 	}
 
@@ -304,13 +324,27 @@ class settings {
 				'help_text'=>'A placeholder is a value that is inserted into an input field and acts as an example. The value is overwritten as soon as the user beigns to interact with the field and is not included in page submissions if left unchanged.'
 			);
 		
-		//on off switch
-		$html .= '<div class="col-xs-12 col-md-4 small-top-marg form-group">';
-		$html .= '	<label>Required</label>';
+		//required on off switch
+		$html .= '<div class="col-xs-12 col-md-3 small-top-marg form-group">';
+		$html .= '	<label>Required <small class="help">Whether or not participants must supply this information. If this is active then "Display on Profile" must also be</small></label>';
 		$html .= '	<div class="input-group">';
 		$html .= '		<div class="onoffswitch">';
 		$html .= '			 <input type="checkbox" id="settings-attr-require-onoff" name="settings-attr-require-onoff" class="onoffswitch-checkbox"  '. returnChecked( $this->attr_required, true ) . '>';
 		$html .= '			 <label class="onoffswitch-label" for="settings-attr-require-onoff">';
+		$html .= '			 	<span class="onoffswitch-inner"></span>';
+		$html .= '		 		<span class="onoffswitch-switch"></span>';
+		$html .= '			</label>';
+		$html .= '		</div>';
+		$html .= '	</div>';
+		$html .= '</div>';
+
+		//display on profile
+		$html .= '<div class="col-xs-12 col-md-3 small-top-marg form-group">';
+		$html .= '	<label>Display on Profile <small class="help"> <span style="color:green;">Active</span> = Allow user to supply information for matching<br> <span style="color:red;">Disabled</span> = Store for use as basic position information</small></label>';
+		$html .= '	<div class="input-group">';
+		$html .= '		<div class="onoffswitch">';
+		$html .= '			 <input type="checkbox" id="settings-attr-profile-display-onoff" name="settings-attr-profile-display-onoff" class="onoffswitch-checkbox"  '. returnChecked( $this->attr_profile_display, true ) . '>';
+		$html .= '			 <label class="onoffswitch-label" for="settings-attr-profile-display-onoff">';
 		$html .= '			 	<span class="onoffswitch-inner"></span>';
 		$html .= '		 		<span class="onoffswitch-switch"></span>';
 		$html .= '			</label>';
@@ -352,7 +386,7 @@ class settings {
 			//Add new option button
 			$html .= '<div class="form-group col-xs-6 col-xs-offset-3 col-md-3 col-md small-top-marg-offset-1"><div class="input-group"><button class="btn btn-primary form-control" id="new-attr-option-btn">Add New Option</button></div></div>';
 
-			//update hidden fields
+			//get data content ready for insert into hidden input 
 			$options_form_value = $attr_options_json['option_value'];
 			$options_form_value = str_replace('"', '\'', $options_form_value );
 			$options_form_value = str_replace( array('{','}'), null, $options_form_value );
@@ -360,6 +394,7 @@ class settings {
 				$options_form_value .= ',';
 			}
 
+			//update hidden fields
 			$html .= '<input type="hidden" name="attr-options-compiled" value="' . $options_form_value . '">';
 			$html .= '<input type="hidden" name="attr-options-updated" value="false">';
 

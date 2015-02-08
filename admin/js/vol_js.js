@@ -909,3 +909,10 @@ function submitDuplicatePositionForm(){
     $('#volunteerModal').modal('hide')
     $("#position-settings").submit();
 }
+
+function verifySaveOnChange(elem,updField){
+    if( $("input[name='"+updField+"']").val() == "true" ){
+        event.preventDefault();
+        alert("You haven't saved your changes!");
+    } 
+}

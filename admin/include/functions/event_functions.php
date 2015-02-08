@@ -148,7 +148,6 @@ function get_event_meta($event_id, $meta_name){
     }
 
     return $return;
-	
 }
 
 function update_event_meta($event_id, $meta_name, $meta_value){
@@ -186,4 +185,25 @@ function remove_event($event_id){
 	$mysqli->query( $query );
 }
 
+function get_event_roles($event_id){
+	global $mysqli;
+
+	$stmt = $mysqli->prepare("SELECT `meta_value` FROM `event_meta` WHERE `event_id` = ? AND `meta_name` = 'event_roles'");
+	$stmt->bind_param('i', $event_id);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	
+	//default return
+	$return = false;
+
+	//get values
+	while($row = $result->fetch_assoc()) {
+		$return = $row['meta_value'];
+    }
+
+    //convert roles from json
+    $return = json_decode( $return, true );
+
+    return $return;
+}
 ?>

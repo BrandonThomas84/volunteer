@@ -519,6 +519,12 @@ class settings {
 		//add hidden field
 		$options = array('input_type'=>'hidden','input_value'=>'false');
 		$html .= createFormInput('changed_settings', $options );
+		//reset options
+		$options=null;
+
+		/**
+		REGISTRATION SETTINGS
+		*/
 
 		$html .= '	<h2 class="h3 bg-info text-info">Registration Settings</h2>';
 		$html .= '	<div class="col-md-12 no-padd">';
@@ -527,15 +533,23 @@ class settings {
 			$html .= '		<div class="form-group col-xs-12 col-md-6 no-padd">';
 		$options = array('label'=>'Registered URL:','label_class'=>'col-xs-4','disabled'=>true,'field_wrap'=>array('<div class="col-xs-8">','</div>'));
 		$html .= createFormInput('site_url', $options ) . $end_group;
+		//reset options
+		$options=null;
 
 		//registration key
 		$html .= '		<div class="form-group col-xs-12 col-md-6 no-padd">';
 		$options = array('label'=>'Registration Key:','label_class'=>'col-xs-4','required'=>true,'field_wrap'=>array('<div class="col-xs-8">','</div>'));
 		$html .= createFormInput('software_key', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//column / row shift
 		$html .= '	</div><!--CLOSE COLUMN-->';
 		$html .= '	<div class="clearfix"></div>';
+
+		/**
+		GENERAL SETTINGS
+		*/
 
 		//start general settings
 		$html .= '	<h2 class="h3 bg-info text-info">General Settings</h2>';
@@ -545,21 +559,27 @@ class settings {
 		$html .= '		<div class="form-group col-xs-12 col-md-6 no-padd">';
 		$options = array('input_type'=>'number','label'=>'Password Lockout:','label_class'=>'col-xs-4','field_wrap'=>array('<div class="col-xs-8"><div class="input-group">', '</div></div>'),'input_addon_end'=>'Mins','placeholder'=>'30','help_text'=>'This is the time in minutes that a user will be locked out of their account after 5 failed attempts to login. This should be set to no less than 5 minutes to help prevent brute force attacks','help_title'=>'Failed Password Lockout');
 		$html .= createFormInput('lockout_duration', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//lockout_duration
 		$html .= '		<div class="form-group col-xs-12 col-md-6 no-padd">';
-		$options = array('input_type'=>'checkbox','label'=>'Development Mode:','label_class'=>'col-xs-4','check_value'=>'on');
+		$options = array('input_type'=>'checkbox','label'=>'Development Mode:','label_class'=>'col-xs-4','check_value'=>'on','field_wrap'=>array('<div class="col-xs-8">','</div>'),'no_form_control'=>true,'display_value'=>null,'inline_style'=>array('-ms-transform: scale(2)','-webkit-transform: scale(2)','transform: scale(2)'));
 		$html .= createFormInput('development_mode', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//column / row shift
 		$html .= '	</div><!--CLOSE COLUMN-->';
 		$html .= '	<div class="clearfix"></div>';
 
+		/**
+		ATTRIBUTES
+		*/
+
 		//start the position attributes
 		$html .= '	<h2 class="h3 bg-info text-info" id="settings-position-attributes">Position Attributes</h2>';
-		$html .= '	<p class="help-block">Add and configure attributes that are available when creating positions to help narrow the applicants.</p>';
-
-		
+		$html .= '	<p class="help-block">Add and configure attributes that are available when creating positions to help narrow the applicants.</p>';		
 
 		//new attribute
 		$html .= '	<div class="col-sm-12 no-padd" id="attribute-add-from-settings" data-controller-id="new-attr-from-core">';
@@ -571,22 +591,30 @@ class settings {
 		$html .= '		<div class="col-xs-12 col-md-3">';
 		$options = array('input_type'=>'text','field_wrap'=>array('<div class="form-group input-group has-error">', '</div>'),'input_addon_start'=>'Name:','placeholder'=>'My Attribute');
 		$html .= createFormInput('new_attr_name', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//attribute ID
 		$html .= '		<div class="col-xs-12 col-md-3">';
 		$options = array('input_type'=>'text','field_wrap'=>array('<div class="form-group input-group has-error">', '</div>'),'input_addon_start'=>'Unique ID:','placeholder'=>'my_attribute');
 		$html .= createFormInput('new_attr_id', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//attribute type
 		$html .= '		<div class="col-xs-12 col-md-3">';
 		$inputs = array('text'=>'Text Input','number'=>'Number Input','date'=>'Date Input','multiple_choice'=>'Multiple Choice');
 		$options = array('input_type'=>'select','field_wrap'=>array('<div class="form-group input-group has-error">', '</div>'),'options'=>$inputs,'input_addon_start'=>'Type:');
 		$html .= createFormInput('new_attr_type', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//add attribute button
 		$html .= '		<div class="col-xs-12 col-md-3">';
 		$options = array('input_type'=>'button','input_value'=>'Add Attribute','class'=>'btn btn-info');
 		$html .= createFormInput('new_attr_add_btn', $options) . $end_group . '<div class="clearfix"></div>';
+		//reset options
+		$options=null;
 
 		//close add attribute
 		$html .= '		</div><!--END NEW ATTRIBUTE WELL-->';
@@ -626,7 +654,9 @@ class settings {
 
 		//submit form
 		$options = array('input_type'=>'submit','input_value'=>'Update Settings','class'=>'btn btn-success','field_wrap'=>array('<div class="col-xs-12 text-center col-md-4 col-md-offset-4">', '</div>') );
-		$html .= createFormInput('settings_submit_button', $options) . $end_group;	
+		$html .= createFormInput('settings_submit_button', $options) . $end_group;
+		//reset options
+		$options=null;
 
 		//close form and container
 		$html .= '	</form>';

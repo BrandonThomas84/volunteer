@@ -44,9 +44,32 @@ class manage_event {
 			//page meta and breadcrumb information
 			$this->pageMeta[1] = array(
 				'name' => $event['name'],
-				'url' => $event['slug'],
+				'url' => $this->pageMeta[0]['url'] . '/' . $event['slug'],
 				'meta_title' => $event['name'] . ' - Edit Screen',
 				'meta_description' => 'Manage and change settings for the ' . $event['name'] . ' event.',
+			);	
+		}
+
+		//check if role ID is supplied and add to meta information if so
+		if(isset( $_GET['role_id'] ) ){
+
+			//get the event info
+			$event = get_event_by_slug( $_GET['function'] );
+
+			//get role info
+			$role = get_event_roles( $event['id'] );
+			$role = $role[ $_GET['role_id'] ];
+
+			//change the page title
+			$this->title = $role['name'];
+			$this->subtitle = 'Manage event role ';
+
+			//page meta and breadcrumb information
+			$this->pageMeta[2] = array(
+				'name' => $role['name'],
+				'url' => $this->pageMeta[1]['url'] . '/?role_id=' . $_GET['role_id'],
+				'meta_title' => $role['name'] . ' - Role Edit Screen',
+				'meta_description' => 'Manage and change settings for the ' . $event['name'] . ' role.',
 			);	
 		}
 	}
@@ -122,6 +145,18 @@ class manage_event {
 					update_event_meta( $_POST['event-id'], 'allow_no_email', 'off' );
 				}
 
+				//check for start date
+				if( isset( $_POST['event-start-date'] ) ){
+					$start_date_update = strtotime( $_POST['event-start-date'] );
+					update_event_meta( $_POST['event-id'], 'start_date', $start_date_update );
+				} 
+
+				//check for end date
+				if( isset( $_POST['event-end-date'] ) ){
+					$end_date_update = strtotime( $_POST['event-end-date'] );
+					update_event_meta( $_POST['event-id'], 'end_date', $end_date_update );
+				} 
+
 				
 				
 				//run update on event
@@ -150,23 +185,15 @@ class manage_event {
 					$metaUpdate = update_event_meta($_POST['event-id'], 'event_updates', $meta_val);
 
 					//return message
-					$message['Successfully Updated Event Options'] = array(
-							'type' => 'success',
-							'msg' => 'You have successfully updated the options for this event. Please review your changes below.',
-						);
+					add_page_message('success','You have successfully updated the options for this event. Please review your changes below.','Successfully Updated Event Options');
 				} else {
 
-					//return message
-					$message['Error While Updating'] = array(
-							'type' => 'danger',
-							'msg' => 'There was a database error while trying to update your options.',
-						);
+					//ad page message
+					add_page_message('danger','There was a database error while trying to update your event settings.','Error While Updating');
 				}
 
-				//set the page message
-				foreach( $message as $name => $msg ){
-					$this->pageMessage[$name] = $msg;
-				}
+				//redirect page
+				submission_redirect( '/manage-event/' . $_GET['function'] );
 			}
 		}
 	}
@@ -181,8 +208,16 @@ class manage_event {
 		//check if event slug is supplied
 		if(isset( $_GET['function'] ) ){
 
+			//get event information
 			$event = get_event_by_slug( $_GET['function'] );
-			$html .= $this->eventDetails( $event );
+
+			//check for role 
+			if( isset( $_GET['role_id'] ) ){
+				$html .= '';
+			} else {
+				//output basic event controls
+				$html .= $this->eventDetails( $event );
+			}
 
 		} else {
 
@@ -203,19 +238,31 @@ class manage_event {
 		$slug = $event['slug'];
 		$status = $event['status'];
 
-		//meta variables
+		//open enrollment meta
 		$open_enrollment = get_event_meta( $id, 'open_enrollment');
 		$open_enrollment = $open_enrollment['meta_value'];
 
+		//phone only meta
 		$allow_no_email = get_event_meta( $id, 'allow_no_email');
 		$allow_no_email = $allow_no_email['meta_value'];
 
+		//start date meta
+		$start_date = get_event_meta( $id, 'start_date');
+		$start_date = date('Y-m-d', $start_date['meta_value'] );
 
+		//end date meta
+		$end_date = get_event_meta( $id, 'end_date');
+		$end_date = date('Y-m-d', $end_date['meta_value'] );
+
+		//create group end string
+		$end_group 	= '</div><!--END GROUP-->';
 
 		//created info variables
 		$created = get_event_meta( $id, 'created' );
 		$created = date('m/d/Y', $created['meta_value'] );
-		$createdBy = get_user( get_event_meta( $id, 'created_by' )  );
+		$creator = get_event_meta( $id, 'created_by' );
+		$createdBy = get_user( $creator['meta_value'] );
+
 
 		//created information
 		$html = '<div id="manage-event-primary" class="">';
@@ -228,23 +275,44 @@ class manage_event {
 		$html .= '	</div><hr>';
 
 		//start form
-		$html .= '	<form id="edit-event-form" class="modify-form-controller form-horizontal" data-controller-id="event-status-change" name="edit-event-form" method="post" enctype="multipart/form-data" role="form">';
+		$html .= '	<form id="edit-event-form" class="modify-form-controller form-horizontal form-has-nonce" data-controller-id="event-status-change" name="edit-event-form" method="post" enctype="multipart/form-data" role="form">';
 		$html .= '		<input type="hidden" name="event-update" value="true">';
 		$html .= '		<input type="hidden" name="event-id" value="' . $id . '">';
 		$html .= '		<input type="hidden" id="event-status-change" name="event-status-change" value="false">';
 
-		//event name
-
-		$html .= '		<div class="form-group col-sm-12 col-md-8">';
-		$html .= '			<label class="col-sm-5 col-md-3 control-label">Event Name:</label>';
-		$html .= '			<div class="col-sm-6 col-md-9">';
+		/**
+		EVENT NAME
+		*/
+		$html .= '		<div class="form-group col-sm-12">';
+		$html .= '			<label class="col-sm-5 col-md-2 control-label">Event Name:</label>';
+		$html .= '			<div class="col-sm-6 col-md-10">';
 		$html .= '				<input type="text" name="event-name" placeholder="Event Name" value="' . $name . '" required="required" class="form-control">';
 		$html .= '			</div>';
 		$html .= '		</div>';
 
+		/**
+		EVENT START
+		*/
+		$html .= '		<div class="form-group col-sm-6">';
+		$html .= '			<label class="col-sm-5 col-md-2 control-label">Event Start Date:</label>';
+		$html .= '			<div class="col-sm-6 col-md-10">';
+		$html .= '				<input type="date" name="event-start-date" value="' . $start_date . '" required="required" class="form-control">';
+		$html .= '			</div>';
+		$html .= '		</div>';
 
-		//status
-		//$html .= '		<div class="row">';
+		/**
+		EVENT END
+		*/
+		$html .= '		<div class="form-group col-sm-6">';
+		$html .= '			<label class="col-sm-5 col-md-2 control-label">Event End Date:</label>';
+		$html .= '			<div class="col-sm-6 col-md-10">';
+		$html .= '				<input type="date" name="event-end-date" value="' . $end_date . '" required="required" class="form-control">';
+		$html .= '			</div>';
+		$html .= '		</div>';
+
+		/**
+		STATUS CHECKBOX
+		*/
 		$html .= '			<div class="form-group col-sm-12 col-md-4">';
 		$html .= '				<label class="col-sm-5 col-md-4 control-label">Event Status:</label>';
 		$html .= '				<div class="col-sm-7 col-md-8">';
@@ -254,11 +322,13 @@ class manage_event {
         $html .= '							<span class="onoffswitch-inner"></span>';
         $html .= '							<span class="onoffswitch-switch"></span>';
     	$html .= '						</label>';
-    	$html .= '					</div>';
+    	$html .= '					</div><p class="help">Active events will be shown on the frontend and allow sign ups for open positions.</p>';
 		$html .= '				</div>';
 		$html .= '			</div>';
 
-		//allow floating volunteers
+		/**
+		OPEN ENROLLMENT
+		*/
 		$html .= '			<div class="form-group col-sm-12 col-md-4">';
 		$html .= '				<label class="col-sm-5 col-md-4 control-label">Open Enrollment:</label>';
 		$html .= '				<div class="col-sm-7 col-md-8">';
@@ -272,7 +342,9 @@ class manage_event {
 		$html .= '				</div>';
 		$html .= '			</div>';
 
-		//allow registration with phone number only
+		/**
+		ALLOW REGISTRATION WITH ONLY PHONE NUMBER
+		*/
 		$html .= '			<div class="form-group col-sm-12 col-md-4">';
 		$html .= '				<label class="col-sm-5 col-md-4 control-label">No Email Registration:</label>';
 		$html .= '				<div class="col-sm-7 col-md-8">';
@@ -288,16 +360,33 @@ class manage_event {
 
 		$html .='			<div class="clearfix"></div>';
 
-		//submit button
-		$html .= '		<div class="form-group text-center">';
-		$html .= '			<input type="submit" class="btn btn-success col-sm-4 col-sm-offset-4" value="Save Changes">';
-		$html .= '		</div><div class="clearfix"></div>';
+		/**
+		EVENT ROLE CREATION
+		*/
 
-		$html .= '	</form><!--END EVENT FORM-->';
+		//role title and help text
+		$html .= '		<h2 class="h3 bg-info text-info">Event Roles</h2>';
+		$html .= '		<p class="help-block">This is where individual responsibility roles can be created for a given event.</p><p class="help-block">Roles should be used to give permissions to users for the duration of the event (unless otherwise indicated). When the event has ended or the role completion date / time is reached the permissions are revoked.</p>';
 
+		//role container
+		$html .= '	<div class="col-sm-12 no-padd" id="event-role-management">';
+
+		//get the roles
+		$roles = get_event_roles( $id );
+
+		$html .= $this->get_event_role_table( $roles );
+
+		//column / row shift
+		$html .= '	</div><!--CLOSE COLUMN-->';
+		$html .= '	<div class="clearfix"></div>';
+
+		/**
+		HISTORY
+		*/
 		//start update history box
+		$html .= '		<h2 class="h3 bg-info text-info">Update History</h2>';
 		$html .= '<div id="update-hitory" class="panel panel-default">';
-		$html .= '	<div class="panel-heading"><a data-toggle="collapse" data-parent="#update-hitory" href="#update-hstory-collapase"><strong>View Update History</strong></a></div>';
+		$html .= '	<div class="panel-heading"><a data-toggle="collapse" data-parent="#update-hitory" href="#update-hstory-collapase"><strong>Click to View Update History</strong></a></div>';
   		$html .= '		<div id="update-hstory-collapase" class="panel-body panel-collapse collapse">';
 		$html .= '			<ul class="list-group">';
 
@@ -319,11 +408,24 @@ class manage_event {
 		} else {
 			$html .= '<li class="list-group-item">No Update History</li>';
 		}
-
 		$html .= '		</ul>';
-		$html .= '	</div><!-- CLOSE PANEL BODY-->';
 
+		//close the panel body
+		$html .= '	</div><!-- CLOSE PANEL BODY-->';
+		//close primary container
 		$html .= '</div><!--CLOSE PRIMARY -->';
+
+
+		/**
+		SUBMIT BUTTON
+		*/
+		$html .= '		<div class="form-group text-center" style="margin-top:30px;">';
+		$html .= '			<input type="submit" class="btn btn-success col-xs-10 col-xs-offset-1" value="Save Changes">';
+		$html .= '		</div><div class="clearfix"></div>';
+
+		//close form
+		$html .= '	</form><!--END EVENT FORM-->';
+
 		return $html;
 	}
 
@@ -394,6 +496,61 @@ class manage_event {
 		$html .= '</table>';
 		$html .= '</div>';
 		$html .= '</div>';
+
+		return $html;
+	}
+
+	protected function get_event_role_table( $roles ){
+		//start role table
+		$html = '<table class="table table-striped">';
+
+		//table headers
+		$html .= '<tr><th>ID</th><th>Role Name</th><th>Role End</th><th>Assignee</th><th>Modify Role</th></tr>';
+
+		//if there are roles
+		if( !empty( $roles ) ){
+			foreach ($roles as $key => $role) {
+
+				//check if assigned to dictate color
+				$row_class = 'danger';
+				if( !empty( $role['uid'] ) ){
+					$row_class = 'success';
+				}
+
+				//start role row
+				$html .= '<tr class="' . $row_class . '">';
+
+				//role id
+				$html .= '<td>' . $role['id'] . '</td>';
+				
+				//role name
+				$html .= '<td>' . $role['name'] . '</td>';
+				
+				//role end
+				$html .= '<td>' . date('m/d/Y', $role['end']) . '</td>';
+
+				//get the user name
+				$user = get_user( $role['uid'] );
+				$user = $user['first_name'] . ' ' . substr( $user['last_name'], 0,1);
+
+				//role assignee
+				$html .= '<td>' . $user . '</td>';
+
+				//role assignee
+				$html .= '<td><a class="btn btn-primary form-control" href="' . _ROOT_ . '/manage-event/' . $_GET['function'] . '?role_id=' . $role['id'] . '" onclick="verifySaveOnChange(this,\'event-status-change\')">Manage Role</a></td>';
+
+				//close role row
+				$html .= '</tr>';
+			}
+		} else {
+			$html .= '<tr><td colspan="5"><p style="text-align:center;">NO ROLES HAVE BEEN CREATED</p></td></tr>';
+		}
+
+		//create new role link
+		$html .= '<tr><td colspan="5"><a class="btn btn-warning col-xs-8 col-xs-offset-2" href="' . _ROOT_ . '/manage-event/' . $_GET['function'] . '?role_id=new" onclick="verifySaveOnChange">Create New Role</a></td></tr>';
+
+		//end role table
+		$html .= '</table>';
 
 		return $html;
 	}

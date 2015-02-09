@@ -12,7 +12,7 @@ class calendar {
 		require_once __FUNCTION_INCLUDE__ . 'position_functions.php';
 		require_once __FUNCTION_INCLUDE__ . 'user_functions.php';
 
-		//get first position
+		//get first position TESTING
 		$earliest_year = false;
 		$earliest_month = false;
 		$earliest_day = false;

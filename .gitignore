@@ -2,3 +2,4 @@
 *.log
 settings.*.php
 settings.php
+/admin/profile-images/profile_image_*
